@@ -60,8 +60,8 @@ You can use Sharplab as well.
     }
  ```
 # Examples
-[C# side](https:\\github.com\badryuner\rustishka\blob\master\Rustishka.Tests\SomeTests.cs)
-[Rust side](https:\\github.com\badryuner\rustishka\blob\master\rustishka_examples\src\lib.rs)
+[C# side](https://github.com/badryuner/rustishka/blob/master/Rustishka.Tests/SomeTests.cs)
+[Rust side](https://github.com/badryuner/rustishka/blob/master/rustishka_examples/src/lib.rs)
 # TODO
 - Add support for calling non-virtual functions
 - Maybe better reflection?
