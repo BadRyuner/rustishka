@@ -1,5 +1,5 @@
 use rustishka::wrappers::system::system_delegate::DelegateBindings;
-use rustishka::{initialize_rustishka, DOTNET_RUNTIME};
+use rustishka::{initialize_rustishka, search_type_cached, DOTNET_RUNTIME};
 use rustishka::wrappers::system::{system_delegate::Delegate, system_reflection::MethodBaseBindings};
 
 use rustishka::wrappers::system::{system_array::SystemArray, system_reflection::{BindingFlags, SystemType}, system_string::SystemString, NetObject, SystemObject, SystemObjectBindings};
@@ -54,4 +54,21 @@ extern "stdcall" fn try_get_field_from_instance(object: *mut NetObject<SystemObj
     let tape = object.get_type();
     let field_info = tape.get_field(field, BindingFlags::PublicInstance);
     field_info.get_value(object)
+}
+
+#[no_mangle]
+extern "stdcall" fn try_some_do_with_instance_field(object: *mut NetObject<SystemObject>, field: *mut NetObject<SystemString>) {
+    let tape = object.get_type();
+    let field_info = tape.get_field(field, BindingFlags::PublicInstance);
+    let field_type = field_info.get_field_type();
+    if field_type.equals(search_type_cached(&String::from("System.Int32"), false)) {
+        let value: *mut NetObject<i32> = field_info.get_value(object).cast_unchecked();
+        unsafe { (*value).content = 0xBEEFi32 }
+        field_info.set_value(object, value.cast_unchecked());
+    }
+    else if field_type.equals(search_type_cached(&String::from("System.Single"), false)) {
+        let value: *mut NetObject<f32> = field_info.get_value(object).cast_unchecked();
+        unsafe { (*value).content = 3.14f32 }
+        field_info.set_value(object, value.cast_unchecked());
+    }
 }

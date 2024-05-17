@@ -18,11 +18,21 @@ public unsafe class TestReflection
     {
         var getField = (delegate*<object, string, object>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
             "try_get_field_from_instance");
+
         DummyClass obj = new();
+
         Assert.Equal(obj.ItsString, getField(obj, "ItsString"));
         Assert.Equal(obj.ItsInt, getField(obj, "ItsInt"));
         Assert.Equal(obj.ItsFloat, getField(obj, "ItsFloat"));
-        
+
+        var doSmth = (delegate*<object, string, void>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "try_some_do_with_instance_field");
+
+        doSmth(obj, "ItsInt");
+        Assert.Equal(0xBEEF, obj.ItsInt);
+
+        doSmth(obj, "ItsFloat");
+        Assert.Equal(3.14f, obj.ItsFloat);
     }
 
     public class DummyClass
