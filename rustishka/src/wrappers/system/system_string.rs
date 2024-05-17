@@ -1,5 +1,7 @@
 use std::ptr;
 
+use crate::imports::DotnetImportsContainer;
+
 use super::{NetObject, SystemObjectBindings};
 
 #[repr(C)]
@@ -28,5 +30,17 @@ impl SystemString {
         }
 
         Box::new(pseudo_string)
+    }
+
+    pub fn alloc_on_dotnet(ctx: &DotnetImportsContainer, text: &String) -> *mut NetObject<SystemString> {
+        ctx.allocate_string(text)
+    }
+}
+
+impl NetObject<SystemString> {
+    pub fn as_slice(self: *mut Self) -> &'static mut [u16] {
+        unsafe {
+            core::slice::from_raw_parts_mut(core::ptr::from_mut(&mut (*self).content.chars[0]), (*self).content.length as usize)
+        }
     }
 }

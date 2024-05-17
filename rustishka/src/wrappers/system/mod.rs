@@ -1,7 +1,12 @@
-use self::system_string::SystemString;
+pub mod system_delegate;
+pub mod system_array;
+pub mod system_appdomain;
+use crate::{define_virtual, DOTNET_RUNTIME};
+
+use self::{system_reflection::SystemType, system_string::SystemString};
 
 pub mod system_string;
-pub mod system_type;
+pub mod system_reflection;
 
 #[repr(C)]
 pub struct NetObject<Content> {
@@ -27,37 +32,20 @@ impl<Content> NetObject<Content> {
             core::mem::transmute(self)
         }
     }
+
+    pub fn get_type(self: *mut Self) -> *mut NetObject<SystemType> {
+        unsafe {
+            DOTNET_RUNTIME.get_mut().unwrap().get_type(self)
+        }
+    }
 }
 
 pub struct SystemObject { }
 
 pub trait SystemObjectBindings {
-    fn to_system_string(self: *mut Self) -> *mut NetObject<SystemString> {
-        unsafe {
-            let obj = self as *mut NetObject<SystemObject>;
-            let func_ptr = obj.get_method_table().get_func_at(0, 1);
-            let func: extern "stdcall" fn(*mut NetObject<SystemObject>) -> *mut NetObject<SystemString> = core::mem::transmute(func_ptr);
-            func(obj)
-        }
-    }
-
-    fn equals<T>(self: *mut Self, other: *mut NetObject<T>) -> bool {
-        unsafe {
-            let obj = self as *mut NetObject<SystemObject>;
-            let func_ptr = obj.get_method_table().get_func_at(0, 2);
-            let func: extern "stdcall" fn(*mut NetObject<SystemObject>, *mut NetObject<T>) -> bool = core::mem::transmute(func_ptr);
-            func(obj, other)
-        }
-    }
-
-    fn get_hashcode(self: *mut Self) -> i32 {
-        unsafe {
-            let obj = self as *mut NetObject<SystemObject>;
-            let func_ptr = obj.get_method_table().get_func_at(0, 3);
-            let func: extern "stdcall" fn(*mut NetObject<SystemObject>) -> i32 = core::mem::transmute(func_ptr);
-            func(obj)
-        }
-    }
+    define_virtual!(to_system_string, 0, 1, *mut NetObject<SystemString>);
+    define_virtual!(equals, 0, 2, bool, other: *mut NetObject<SystemObject>);
+    define_virtual!(get_hashcode, 0, 3, i32);
 }
 
 

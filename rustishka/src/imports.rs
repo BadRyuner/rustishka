@@ -1,13 +1,16 @@
 use std::collections::HashMap;
 
-use crate::wrappers::system::{system_string::SystemString, system_type::SystemType, NetObject};
+use crate::wrappers::system::{system_appdomain::AppDomain, system_array::SystemArray, system_reflection::SystemType, system_string::SystemString, NetObject};
 
 #[repr(C)]
 pub struct DotnetImports {
+    pub get_appdomain: extern "stdcall" fn() -> *mut NetObject<AppDomain>,
     pub get_type: extern "stdcall" fn(*mut usize) -> *mut NetObject<SystemType>,
     pub search_type: extern "stdcall" fn(*mut NetObject<SystemString>, bool) -> *mut NetObject<SystemType>,
     pub allocate: extern "stdcall" fn(*mut NetObject<SystemType>) -> *mut usize,
-    pub allocate_string: extern "stdcall" fn(*const u8, i32) -> *mut NetObject<SystemString>
+    pub allocate_string: extern "stdcall" fn(*const u8, i32) -> *mut NetObject<SystemString>,
+    pub allocate_array: extern "stdcall" fn(*mut NetObject<SystemType>, i32) -> *mut NetObject<SystemArray<()>>,
+    pub try_catch: extern "stdcall" fn(extern "stdcall" fn(*mut usize) -> *mut usize, *mut usize, *mut usize) -> *mut usize
 }
 
 #[derive(Debug)]
@@ -68,4 +71,11 @@ impl DotnetImportsContainer {
             core::mem::transmute(((*self.0).allocate_string)(text.as_ptr(), text.len() as i32))
         }
     }
+
+    pub fn allocate_array<T>(&self, element_type: *mut NetObject<SystemType>, size: i32) -> *mut NetObject<SystemArray<T>> {
+        unsafe {
+            core::mem::transmute(((*self.0).allocate_array)(element_type, size))
+        }
+    }
+
 }

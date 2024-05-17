@@ -4,21 +4,11 @@ namespace Rustishka.Tests;
 
 public unsafe class SomeTests
 {
-    private static readonly IntPtr _moduleHandle;
-
-    static SomeTests()
-    {
-        var result =
-            RustishkaBridge.Bridge.ConnectRustModule("..\\..\\..\\..\\rustishka_examples\\target\\release\\rustishka_examples.dll",
-            out _moduleHandle);
-        Assert.True(result, "Cant load rustishka example");
-    }
-
     [Fact]
     public void TryCallToString()
     {
         // important thing: don`t use unmanaged[stdcall]!!! or dotnet will shoot rust in the foot.
-        var func = (delegate* <object, string>)NativeLibrary.GetExport(_moduleHandle,
+        var func = (delegate* <object, string>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
             "try_call_to_string");
         Assert.Equal("System.Object", func(new object()));
         Assert.Equal("lol", func("lol"));
@@ -28,7 +18,7 @@ public unsafe class SomeTests
     [Fact]
     public void TestObjectEquals()
     {
-        var func = (delegate*<object, object, bool>)NativeLibrary.GetExport(_moduleHandle,
+        var func = (delegate*<object, object, bool>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
             "i_can_compare_objects_too");
 
         CompareThings(1, 1);
@@ -42,7 +32,7 @@ public unsafe class SomeTests
     [Fact]
     public void TestSearchType()
     {
-        var func = (delegate*<char*, nuint, Type>)NativeLibrary.GetExport(_moduleHandle,
+        var func = (delegate*<char*, nuint, Type>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
             "find_class_4_me_senpai");
 
         Check<int>();
@@ -64,7 +54,7 @@ public unsafe class SomeTests
     [Fact]
     public void TestAllocObject()
     {
-        var func = (delegate*<System.Type, object>)NativeLibrary.GetExport(_moduleHandle,
+        var func = (delegate*<System.Type, object>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
             "alloc_object");
 
         Assert.Equal(typeof(object), func(typeof(object)).GetType());
@@ -74,7 +64,7 @@ public unsafe class SomeTests
     [Fact]
     public void TestReflection()
     {
-        var func = (delegate*<System.Type, Type>)NativeLibrary.GetExport(_moduleHandle,
+        var func = (delegate*<System.Type, Type>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
             "get_basetype");
 
         //Assert.Equal(typeof(int).BaseType, func(typeof(int)));

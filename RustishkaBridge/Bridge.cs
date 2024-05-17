@@ -11,6 +11,8 @@ public static unsafe class Bridge
     {
         Convention = (BridgeConvention*)NativeMemory.AlignedAlloc((UIntPtr)Unsafe.SizeOf<BridgeConvention>(), 8);
 
+        Convention->FGetAppDomain = &GetAppDomain;
+
         Convention->FGetType = (delegate*<object, Type>)typeof(object).GetMethod("GetType")?.MethodHandle.GetFunctionPointer();
         Debug.Assert((UIntPtr)Convention->FGetType != 0);
 
@@ -24,7 +26,14 @@ public static unsafe class Bridge
 
         Convention->FAllocString = &AllocateString;
         Debug.Assert((UIntPtr)Convention->FAllocString != 0);
+
+        Convention->FAllocArray = &Array.CreateInstance;
+        Debug.Assert((UIntPtr)Convention->FAllocArray != 0);
+
+        Convention->FTryCatch = &TryCatch;
     }
+
+    private static AppDomain GetAppDomain() => AppDomain.CurrentDomain;
 
     private static string AllocateString(byte* text, int length)
     {
@@ -36,15 +45,32 @@ public static unsafe class Bridge
         return result;
     }
 
+    private static Exception? TryCatch(delegate*<nint, nint> func, nint data, nint* result)
+    {
+        try
+        {
+            *result = func(data);
+        }
+        catch (Exception e)
+        {
+            return e;
+        }
+
+        return null;
+    }
+
     private static readonly BridgeConvention* Convention;
     
     [StructLayout(LayoutKind.Sequential)]
     private struct BridgeConvention
     {
+        public delegate* <AppDomain> FGetAppDomain;
         public delegate* <object, Type> FGetType;
         public delegate* <string, bool, Type> FSearchType;
         public delegate* <Type, object> FAlloc;
         public delegate* <byte*, int, string> FAllocString;
+        public delegate* <Type, int, Array> FAllocArray;
+        public delegate* <delegate*<nint, nint>, nint, nint*, Exception> FTryCatch;
     }
 
     /// <summary>
