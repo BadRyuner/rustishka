@@ -70,4 +70,13 @@ public unsafe class SomeTests
         //Assert.Equal(typeof(int).BaseType, func(typeof(int)));
         Assert.Equal(typeof(Exception).BaseType, func(typeof(Exception)));
     }
+
+    [Fact]
+    public void TestDelegateCall()
+    {
+        var func = (delegate*<Delegate, void>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "try_call_delegate_without_args");
+
+        func(static () => Assert.True(true));
+    }
 }
