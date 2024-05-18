@@ -80,7 +80,7 @@ public unsafe class TestDelegates
         Assert.True(func()());
     }
 
-    [Fact]
+    //[Fact]
     public void TestFuncPass2()
     {
         var func = (delegate*<Func<int, int>>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,

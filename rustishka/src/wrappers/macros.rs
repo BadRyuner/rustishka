@@ -16,8 +16,12 @@ macro_rules! define_virtual {
 macro_rules! define_function {
     ($vi:vis $func_name:ident, $slot:expr, $rett:ty $(, $pn:ident : $pt:ty)*) => {
         $vi fn $func_name ($( $pn: $pt, )* ) -> $rett {
-            let me = <Self as $crate::wrappers::system::TypeInfoProvider>::type_of();
-            let f: extern "stdcall" fn($( $pt, )*) -> $rett = unsafe { core::mem::transmute(me.get_fn_at_slot($slot)) };
+            static MY_FUNC: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+            let pf = *MY_FUNC.get_or_init(|| {
+                let me = <Self as $crate::wrappers::system::TypeInfoProvider>::type_of();
+                unsafe { core::mem::transmute(me.get_fn_at_slot($slot)) }
+            } );
+            let f: extern "stdcall" fn($( $pt, )*) -> $rett = unsafe { core::mem::transmute(pf) };
             f($($pn),*)
         }
     };
