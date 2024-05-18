@@ -47,6 +47,25 @@ macro_rules! define_typeof {
     };
 }
 
+// WHY RUST WHYYYYYYYYYYYYYY
+
+#[macro_export]
+macro_rules! managed_array {
+    ($tape:ty, $size:literal $(, $pn:expr )*) => {
+        {
+            let pypy = <$tape as $crate::wrappers::system::TypeInfoProvider>::type_of();
+            let arr = $crate::allocate_array(pypy, $size);
+            let bro: isize = -1;
+            let abstraction = arr.as_slice();
+            $(
+                let bro = (bro + 1) as usize;
+                abstraction[bro] = $pn; 
+            )*
+            arr
+        }
+    };
+}
+
 #[macro_export]
 macro_rules! initialize_rustishka {
     () => {

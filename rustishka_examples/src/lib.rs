@@ -1,5 +1,5 @@
 use rustishka::wrappers::system::system_appdomain::AppDomain;
-use rustishka::wrappers::system::system_delegate::DelegateBindings;
+use rustishka::wrappers::system::system_delegate::{Action, Action1, Action2, Action3, DelegateBindings, Func1, Func2, Func3};
 use rustishka::wrappers::system::system_reflection::AssemblyName;
 use rustishka::wrappers::system::TypeInfoProvider;
 use rustishka::{allocate_string, initialize_rustishka, search_type_cached, DOTNET_RUNTIME};
@@ -88,3 +88,53 @@ extern "stdcall" fn try_some_do_with_instance_field(object: *mut NetObject<Syste
         field_info.set_value(object, value.cast_unchecked());
     }
 }
+
+#[no_mangle]
+extern "stdcall" fn test_action(delegate: *mut NetObject<Action>) {
+    delegate.invoke()
+}
+
+#[no_mangle]
+extern "stdcall" fn test_action_1(delegate: *mut NetObject<Action1<*mut NetObject<SystemObject>>>, arg1: *mut NetObject<SystemObject>) {
+    delegate.invoke(arg1)
+}
+
+#[no_mangle]
+extern "stdcall" fn test_action_2(delegate: *mut NetObject<Action2<*mut NetObject<SystemObject>, *mut NetObject<SystemObject>>>, arg1: *mut NetObject<SystemObject>, arg2: *mut NetObject<SystemObject>) {
+    delegate.invoke(arg1, arg2)
+}
+
+#[no_mangle]
+extern "stdcall" fn test_action_3(delegate: *mut NetObject<Action3<*mut NetObject<SystemObject>, *mut NetObject<SystemObject>, *mut NetObject<SystemObject>>>, arg1: *mut NetObject<SystemObject>, arg2: *mut NetObject<SystemObject>, arg3: *mut NetObject<SystemObject>) {
+    delegate.invoke(arg1, arg2, arg3)
+}
+
+#[no_mangle]
+extern "stdcall" fn test_func1(delegate: *mut NetObject<Func1<*mut NetObject<SystemObject>>>) -> *mut NetObject<SystemObject> {
+    delegate.invoke()
+}
+
+#[no_mangle]
+extern "stdcall" fn test_func2(delegate: *mut NetObject<Func2<*mut NetObject<SystemObject>, *mut NetObject<SystemObject>>>, arg1: *mut NetObject<SystemObject>) -> *mut NetObject<SystemObject> {
+    delegate.invoke(arg1)
+}
+
+#[no_mangle]
+extern "stdcall" fn test_func3(delegate: *mut NetObject<Func3<*mut NetObject<SystemObject>, *mut NetObject<SystemObject>, *mut NetObject<SystemObject>>>, arg1: *mut NetObject<SystemObject>, arg2: *mut NetObject<SystemObject>) -> *mut NetObject<SystemObject> {
+    delegate.invoke(arg1, arg2)
+}
+
+#[no_mangle]
+extern "stdcall" fn test_pass_func1() -> *mut NetObject<Func1<bool>> {
+    Func1::<bool>::new(std::ptr::null_mut(), always_true)
+}
+
+extern "stdcall" fn always_true() -> bool { true }
+
+#[no_mangle]
+extern "stdcall" fn test_pass_func2() -> *mut NetObject<Func2<i32, i32>> {
+    Func2::<i32, i32>::new(std::ptr::null_mut(), redir_bool)
+}
+
+#[no_mangle]
+extern "stdcall" fn redir_bool(val: i32) -> i32 { val }

@@ -1,5 +1,7 @@
 use crate::define_typeof;
 
+define_typeof!(bool, "System.Boolean");
+
 define_typeof!(i8, "System.SByte");
 define_typeof!(i16, "System.Int16");
 define_typeof!(i32, "System.Int32");

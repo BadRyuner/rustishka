@@ -5,11 +5,11 @@ using System.Text.Json;
 
 namespace Rustishka.Tools;
 
-internal unsafe class Program
+public static unsafe class Program
 {
     public static void Main(string[] args)
     {
-        DisplayType(typeof(Activator), pub: true, skipVirtual: true); 
+        DisplayType(typeof(Delegate), pub: true, skipVirtual: false, skipConstructors: false); 
         Console.ReadLine();
     }
 
@@ -19,7 +19,7 @@ internal unsafe class Program
     private static readonly BindingFlags AllStatic =
         BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
-    public static void DisplayType(Type type, bool pub = false, bool skipVirtual = false)
+    public static void DisplayType(Type type, bool pub = false, bool skipVirtual = false, bool skipConstructors = false)
     {
         var irmi = Type.GetType("System.RuntimeMethodHandleInternal")!;
         var getSlot = (delegate* <IntPtr, int>)typeof(RuntimeMethodHandle).GetMethod("GetSlot", AllStatic, [irmi])!
@@ -31,13 +31,27 @@ internal unsafe class Program
         var virtuals = getNumVirtuals(type);
 
         var className = type.Name;
-        Console.WriteLine($"pub struct {className} {{");
+        Console.WriteLine($"pub struct {className} {{ }}");
 
-        Console.WriteLine("}");
+        Console.WriteLine($"\ndefine_typeof!({className}, \"{type.AssemblyQualifiedName}\");");
 
-        Console.WriteLine($"define_typeof!({className}, \"{type.AssemblyQualifiedName}\");");
+        if (!skipConstructors)
+        {
+            int counter = 0;
+            Console.WriteLine($"\nimpl {className} {{");
+            foreach (var ctor in type.GetConstructors(AllInstance))
+            {
+                Console.Write("    define_constructor!(");
+                if (pub) Console.Write("pub ");
+                Console.Write(counter == 0 ? "new" : $"new_{counter}");
+                WriteParams(ctor.GetParameters(), true, false);
+                Console.WriteLine(");");
+                counter++;
+            }
+            Console.WriteLine("}");
+        }
 
-        Console.WriteLine($"impl NetObject<{className}> {{");
+        Console.WriteLine($"\nimpl NetObject<{className}> {{");
         
 
         if (!skipVirtual)

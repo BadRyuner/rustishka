@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Rustishka.Tools\Rustishka.Tools.csproj" />
     <ProjectReference Include="..\RustishkaBridge\RustishkaBridge.csproj" />
   </ItemGroup>
 

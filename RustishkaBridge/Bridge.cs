@@ -48,7 +48,7 @@ public static unsafe class Bridge
         // in theory slot in CLR it`s ty.GetALLMethods()[slot]. But I'm a lazy ass to check it.
         // it would be nice to do method.ToString() == MethodName instead of slot, but my inner bytefucker hisses
         var methods =
-            ty.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.Static);
+            ty.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         for (int i = 0; i < slot; i++)
         {
             var method = methods[i];
