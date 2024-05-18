@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 
@@ -8,17 +9,17 @@ internal unsafe class Program
 {
     public static void Main(string[] args)
     {
-        DisplayType(typeof(StringBuilder), pub: true);
+        DisplayType(typeof(Activator), pub: true, skipVirtual: true); 
         Console.ReadLine();
     }
 
-    private static readonly BindingFlags AllVirtual =
+    private static readonly BindingFlags AllInstance =
         BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
     private static readonly BindingFlags AllStatic =
         BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
-    public static void DisplayType(Type type, bool pub = false)
+    public static void DisplayType(Type type, bool pub = false, bool skipVirtual = false)
     {
         var irmi = Type.GetType("System.RuntimeMethodHandleInternal")!;
         var getSlot = (delegate* <IntPtr, int>)typeof(RuntimeMethodHandle).GetMethod("GetSlot", AllStatic, [irmi])!
@@ -29,24 +30,64 @@ internal unsafe class Program
 
         var virtuals = getNumVirtuals(type);
 
-        foreach (var method in type.GetMethods(AllVirtual).Where(_ => _.IsVirtual))
+        var className = type.Name;
+        Console.WriteLine($"pub struct {className} {{");
+
+        Console.WriteLine("}");
+
+        Console.WriteLine($"define_typeof!({className}, \"{type.AssemblyQualifiedName}\");");
+
+        Console.WriteLine($"impl NetObject<{className}> {{");
+        
+
+        if (!skipVirtual)
         {
-            if (method.IsGenericMethod) continue;
-            if (method.GetBaseDefinition() != method) continue;
+            Console.WriteLine("    // Virtual functions");
+            foreach (var method in type.GetMethods(AllInstance).Where(_ => _.IsVirtual))
+            {
+                if (method.IsGenericMethod) continue;
+                if (method.GetBaseDefinition() != method) continue;
+
+                var slot = getSlot(method.MethodHandle.Value);
+                if (slot >= virtuals) continue;
+
+                Console.Write("    define_virtual!(");
+                if (pub) Console.Write("pub ");
+                Console.Write(JsonNamingPolicy.SnakeCaseLower.ConvertName(method.Name));
+                Console.Write($", {slot / 8}, {slot % 8}, ");
+                Console.Write(ConvertType(method.ReturnType));
+                WriteParams(method.GetParameters(), false, true);
+                Console.WriteLine(");");
+            }
+        }
+
+        Console.WriteLine("\n    // Non-Virtual functions");
+
+        foreach (var method in type.GetMethods(AllInstance | AllStatic).Where(_ => !_.IsVirtual))
+        {
+            if (method.DeclaringType != type) continue;
 
             var slot = getSlot(method.MethodHandle.Value);
-            if (slot >= virtuals) continue;
-
-            Console.Write("    define_virtual!(");
-            if (pub) Console.Write("pub, ");
+            Console.Write("    define_function!(");
+            if (pub) Console.Write("pub ");
             Console.Write(JsonNamingPolicy.SnakeCaseLower.ConvertName(method.Name));
-            Console.Write($", {slot / 8}, {slot % 8}, ");
+            Console.Write($", {slot}, ");
             Console.Write(ConvertType(method.ReturnType));
-            foreach (var parameter in method.GetParameters())
-            {
-                Console.Write($", {JsonNamingPolicy.SnakeCaseLower.ConvertName(parameter.Name ?? $"unk_{parameter.Position}")} : {ConvertType(parameter.ParameterType)}");
-            }
+            WriteParams(method.GetParameters(), method.IsStatic, false);
             Console.WriteLine(");");
+        }
+
+        Console.WriteLine("}");
+    }
+
+    public static void WriteParams(ParameterInfo[] parameters, bool isStatic, bool isVirtual)
+    {
+        if (!isStatic && !isVirtual)
+            Console.Write(", self: *mut Self");
+
+        foreach (var parameter in parameters)
+        {
+            Console.Write($", {JsonNamingPolicy.SnakeCaseLower.ConvertName(parameter.Name ?? $"unk_{parameter.Position}")} : {ConvertType(parameter.ParameterType)}");
         }
     }
 

@@ -1,5 +1,8 @@
+use rustishka::wrappers::system::system_appdomain::AppDomain;
 use rustishka::wrappers::system::system_delegate::DelegateBindings;
-use rustishka::{initialize_rustishka, search_type_cached, DOTNET_RUNTIME};
+use rustishka::wrappers::system::system_reflection::AssemblyName;
+use rustishka::wrappers::system::TypeInfoProvider;
+use rustishka::{allocate_string, initialize_rustishka, search_type_cached, DOTNET_RUNTIME};
 use rustishka::wrappers::system::{system_delegate::Delegate, system_reflection::MethodBaseBindings};
 
 use rustishka::wrappers::system::{system_array::SystemArray, system_reflection::{BindingFlags, SystemType}, system_string::SystemString, NetObject, SystemObject, SystemObjectBindings};
@@ -18,11 +21,9 @@ extern "stdcall" fn i_can_compare_objects_too(obj: *mut NetObject<SystemObject>,
 
 #[no_mangle]
 extern "stdcall" fn find_class_4_me_senpai(name: *const u16, len: usize) -> *mut NetObject<SystemType> {
-    unsafe {
-        let slice = std::slice::from_raw_parts(name, len);
-        let string = String::from_utf16_lossy(slice);
-        DOTNET_RUNTIME.get_mut().unwrap().search_type_cached(&string, true)
-    }
+    let slice = unsafe { std::slice::from_raw_parts(name, len) };
+    let string = String::from_utf16_lossy(slice);
+    search_type_cached(&string, true)
 }
 
 #[no_mangle]
@@ -33,6 +34,21 @@ extern "stdcall" fn alloc_object(tape: *mut NetObject<SystemType>) -> *mut NetOb
 #[no_mangle]
 extern "stdcall" fn get_basetype(tape: *mut NetObject<SystemType>) -> *mut NetObject<SystemType> {
     tape.get_base_type()
+}
+
+#[no_mangle]
+extern "stdcall" fn try_typeof_sys_object() -> *mut NetObject<SystemType> {
+    SystemObject::type_of()
+}
+
+#[no_mangle]
+extern "stdcall" fn try_get_base_dir() -> *mut NetObject<SystemString> {
+    NetObject::<AppDomain>::get_current_domain().get_base_directory()
+}
+
+#[no_mangle]
+extern "stdcall" fn create_assembly_name() -> *mut NetObject<AssemblyName> {
+    AssemblyName::new(allocate_string(&String::from("PoopAssembly, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null")))
 }
 
 #[no_mangle]

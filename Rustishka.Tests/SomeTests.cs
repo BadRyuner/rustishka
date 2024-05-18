@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace Rustishka.Tests;
@@ -78,5 +79,34 @@ public unsafe class SomeTests
             "try_call_delegate_without_args");
 
         func(static () => Assert.True(true));
+    }
+
+    [Fact]
+    public void TypeofInRust()
+    {
+        var func = (delegate*<Type>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "try_typeof_sys_object");
+
+        Assert.Equal(typeof(object), func());
+    }
+
+    [Fact]
+    public void CallSomeNonVirtualFunc()
+    {
+        var func = (delegate*<string>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "try_get_base_dir");
+
+        Assert.Equal(AppDomain.CurrentDomain.BaseDirectory, func());
+    }
+
+    [Fact]
+    public void CreateAssemblyName()
+    {
+        var func = (delegate*<AssemblyName>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "create_assembly_name");
+
+        var ass = func();
+        Assert.Equal("PoopAssembly", ass.Name);
+        Assert.Equal(new(1,2,3,4), ass.Version);
     }
 }

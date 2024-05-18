@@ -1,11 +1,94 @@
-use super::{NetObject, SystemObjectBindings};
+use crate::define_function;
+use crate::define_typeof;
 
-pub struct AppDomain {
-    
-}
+use super::system_array::SystemArray;
+use super::system_reflection::{Assembly, AssemblyName};
+use super::SystemObject;
+use super::{system_string::SystemString, NetObject, SystemObjectBindings};
 
+pub struct AppDomain { }
+
+define_typeof!(AppDomain, "System.AppDomain");
 impl SystemObjectBindings for NetObject<AppDomain> {}
 
 impl NetObject<AppDomain> {
-    
+    define_function!(pub get_current_domain, 7, *mut NetObject<AppDomain>);
+    define_function!(pub get_base_directory, 8, *mut NetObject<SystemString>, self: *mut Self);
+    define_function!(pub get_relative_search_path, 9, *mut NetObject<SystemString>, self: *mut Self);
+    //define_function!(pub get_setup_information, 10, *mut NetObject<AppDomainSetup>, self: *mut Self);
+    //define_function!(pub get_permission_set, 11, *mut NetObject<PermissionSet>, self: *mut Self);
+    //define_function!(pub add_unhandled_exception, 12, (), self: *mut Self, value : *mut NetObject<UnhandledExceptionEventHandler>);
+    //define_function!(pub remove_unhandled_exception, 13, (), self: *mut Self, value : *mut NetObject<UnhandledExceptionEventHandler>);
+    define_function!(pub get_dynamic_directory, 14, *mut NetObject<SystemString>, self: *mut Self);
+    define_function!(pub set_dynamic_base, 15, (), self: *mut Self, path : *mut NetObject<SystemString>);
+    define_function!(pub get_friendly_name, 16, *mut NetObject<SystemString>, self: *mut Self);
+    define_function!(pub get_id, 17, i32, self: *mut Self);
+    define_function!(pub get_is_fully_trusted, 18, bool, self: *mut Self);
+    define_function!(pub get_is_homogenous, 19, bool, self: *mut Self);
+    //define_function!(pub add_domain_unload, 20, (), self: *mut Self, value : *mut NetObject<EventHandler>);
+    //define_function!(pub remove_domain_unload, 21, (), self: *mut Self, value : *mut NetObject<EventHandler>);
+    //define_function!(pub add_first_chance_exception, 22, (), self: *mut Self, value : *mut NetObject<EventHandler`1>);
+    //define_function!(pub remove_first_chance_exception, 23, (), self: *mut Self, value : *mut NetObject<EventHandler`1>);
+    //define_function!(pub add_process_exit, 24, (), self: *mut Self, value : *mut NetObject<EventHandler>);
+    //define_function!(pub remove_process_exit, 25, (), self: *mut Self, value : *mut NetObject<EventHandler>);
+    define_function!(pub apply_policy, 26, *mut NetObject<SystemString>, self: *mut Self, assembly_name : *mut NetObject<SystemString>);
+    define_function!(pub create_domain, 27, *mut NetObject<AppDomain>, friendly_name : *mut NetObject<SystemString>);
+    define_function!(pub execute_assembly_1, 28, i32, self: *mut Self, assembly_file : *mut NetObject<SystemString>);
+    define_function!(pub execute_assembly_2, 29, i32, self: *mut Self, assembly_file : *mut NetObject<SystemString>, args : *mut NetObject<SystemArray<*mut NetObject<SystemString>>>);
+    //define_function!(pub execute_assembly, 30, i32, self: *mut Self, assembly_file : *mut NetObject<SystemString>, args : *mut NetObject<SystemArray<*mut NetObject<SystemString>>>, hash_value : *mut NetObject<SystemArray<u8>>, hash_algorithm : AssemblyHashAlgorithm);
+    define_function!(pub execute_assembly_4, 31, i32, assembly : *mut NetObject<Assembly>, args : *mut NetObject<SystemArray<*mut NetObject<SystemString>>>);
+    define_function!(pub execute_assembly_by_name_1, 32, i32, self: *mut Self, assembly_name : *mut NetObject<AssemblyName>, args : *mut NetObject<SystemArray<*mut NetObject<SystemString>>>);
+    define_function!(pub execute_assembly_by_name_2, 33, i32, self: *mut Self, assembly_name : *mut NetObject<SystemString>);
+    define_function!(pub execute_assembly_by_name_3, 34, i32, self: *mut Self, assembly_name : *mut NetObject<SystemString>, args : *mut NetObject<SystemArray<*mut NetObject<SystemString>>>);
+    define_function!(pub get_data, 35, *mut NetObject<SystemObject>, self: *mut Self, name : *mut NetObject<SystemString>);
+    define_function!(pub set_data, 36, (), self: *mut Self, name : *mut NetObject<SystemString>, data : *mut NetObject<SystemObject>);
+    //define_function!(pub is_compatibility_switch_set, 37, Nullable`1, self: *mut Self, value : *mut NetObject<SystemString>);
+    define_function!(pub is_default_app_domain, 38, bool, self: *mut Self);
+    define_function!(pub is_finalizing_for_unload, 39, bool, self: *mut Self);
+    define_function!(pub unload, 40, (), domain : *mut NetObject<AppDomain>);
+    define_function!(pub load, 41, *mut NetObject<Assembly>, self: *mut Self, raw_assembly : *mut NetObject<SystemArray<u8>>);
+    define_function!(pub load_1, 42, *mut NetObject<Assembly>, self: *mut Self, raw_assembly : *mut NetObject<SystemArray<u8>>, raw_symbol_store : *mut NetObject<SystemArray<u8>>);
+    define_function!(pub load_2, 43, *mut NetObject<Assembly>, self: *mut Self, assembly_ref : *mut NetObject<AssemblyName>);
+    define_function!(pub load_3, 44, *mut NetObject<Assembly>, self: *mut Self, assembly_string : *mut NetObject<SystemString>);
+    define_function!(pub reflection_only_get_assemblies, 45, *mut NetObject<SystemArray<*mut NetObject<Assembly>>>, self: *mut Self);
+    define_function!(pub get_monitoring_is_enabled, 46, bool);
+    define_function!(pub set_monitoring_is_enabled, 47, (), value : bool);
+    define_function!(pub get_monitoring_survived_memory_size, 48, i64, self: *mut Self);
+    define_function!(pub get_monitoring_survived_process_memory_size, 49, i64);
+    define_function!(pub get_monitoring_total_allocated_memory_size, 50, i64, self: *mut Self);
+    define_function!(pub get_current_thread_id, 51, i32);
+    define_function!(pub get_shadow_copy_files, 52, bool, self: *mut Self);
+    define_function!(pub append_private_path, 53, (), self: *mut Self, path : *mut NetObject<SystemString>);
+    define_function!(pub clear_private_path, 54, (), self: *mut Self);
+    define_function!(pub clear_shadow_copy_path, 55, (), self: *mut Self);
+    define_function!(pub set_cache_path, 56, (), self: *mut Self, path : *mut NetObject<SystemString>);
+    define_function!(pub set_shadow_copy_files, 57, (), self: *mut Self);
+    define_function!(pub set_shadow_copy_path, 58, (), self: *mut Self, path : *mut NetObject<SystemString>);
+    define_function!(pub get_assemblies, 59, *mut NetObject<SystemArray<*mut NetObject<Assembly>>>, self: *mut Self);
+    //define_function!(pub add_assembly_load, 60, (), self: *mut Self, value : *mut NetObject<AssemblyLoadEventHandler>);
+    //define_function!(pub remove_assembly_load, 61, (), self: *mut Self, value : *mut NetObject<AssemblyLoadEventHandler>);
+    //define_function!(pub add_assembly_resolve, 62, (), self: *mut Self, value : *mut NetObject<ResolveEventHandler>);
+    //define_function!(pub remove_assembly_resolve, 63, (), self: *mut Self, value : *mut NetObject<ResolveEventHandler>);
+    //define_function!(pub add_reflection_only_assembly_resolve, 64, (), self: *mut Self, value : *mut NetObject<ResolveEventHandler>);
+    //define_function!(pub remove_reflection_only_assembly_resolve, 65, (), self: *mut Self, value : *mut NetObject<ResolveEventHandler>);
+    //define_function!(pub add_type_resolve, 66, (), self: *mut Self, value : *mut NetObject<ResolveEventHandler>);
+    //define_function!(pub remove_type_resolve, 67, (), self: *mut Self, value : *mut NetObject<ResolveEventHandler>);
+    //define_function!(pub add_resource_resolve, 68, (), self: *mut Self, value : *mut NetObject<ResolveEventHandler>);
+    //define_function!(pub remove_resource_resolve, 69, (), self: *mut Self, value : *mut NetObject<ResolveEventHandler>);
+    //define_function!(pub set_principal_policy, 70, (), self: *mut Self, policy : PrincipalPolicy);
+    //define_function!(pub set_thread_principal, 71, (), self: *mut Self, principal : *mut NetObject<IPrincipal>);
+    //define_function!(pub create_instance, 72, *mut NetObject<ObjectHandle>, self: *mut Self, assembly_name : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>);
+    //define_function!(pub create_instance, 73, *mut NetObject<ObjectHandle>, self: *mut Self, assembly_name : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>, ignore_case : bool, binding_attr : BindingFlags, binder : *mut NetObject<Binder>, args : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>, culture : *mut NetObject<CultureInfo>, activation_attributes : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>);
+    //define_function!(pub create_instance, 74, *mut NetObject<ObjectHandle>, self: *mut Self, assembly_name : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>, activation_attributes : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>);
+    //define_function!(pub create_instance_and_unwrap, 75, *mut NetObject<SystemObject>, self: *mut Self, assembly_name : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>);
+    //define_function!(pub create_instance_and_unwrap, 76, *mut NetObject<SystemObject>, self: *mut Self, assembly_name : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>, ignore_case : bool, binding_attr : BindingFlags, binder : *mut NetObject<Binder>, args : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>, culture : *mut NetObject<CultureInfo>, activation_attributes : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>);
+    //define_function!(pub create_instance_and_unwrap, 77, *mut NetObject<SystemObject>, self: *mut Self, assembly_name : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>, activation_attributes : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>);
+    //define_function!(pub create_instance_from, 78, *mut NetObject<ObjectHandle>, self: *mut Self, assembly_file : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>);
+    //define_function!(pub create_instance_from, 79, *mut NetObject<ObjectHandle>, self: *mut Self, assembly_file : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>, ignore_case : bool, binding_attr : BindingFlags, binder : *mut NetObject<Binder>, args : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>, culture : *mut NetObject<CultureInfo>, activation_attributes : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>);
+    //define_function!(pub create_instance_from, 80, *mut NetObject<ObjectHandle>, self: *mut Self, assembly_file : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>, activation_attributes : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>);
+    //define_function!(pub create_instance_from_and_unwrap, 81, *mut NetObject<SystemObject>, self: *mut Self, assembly_file : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>);
+    //define_function!(pub create_instance_from_and_unwrap, 82, *mut NetObject<SystemObject>, self: *mut Self, assembly_file : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>, ignore_case : bool, binding_attr : BindingFlags, binder : *mut NetObject<Binder>, args : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>, culture : *mut NetObject<CultureInfo>, activation_attributes : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>);
+    //define_function!(pub create_instance_from_and_unwrap, 83, *mut NetObject<SystemObject>, self: *mut Self, assembly_file : *mut NetObject<SystemString>, type_name : *mut NetObject<SystemString>, activation_attributes : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>);
+    //define_function!(pub get_thread_principal, 84, *mut NetObject<IPrincipal>, self: *mut Self);
+    //define_function!(pub get_monitoring_total_processor_time, 85, TimeSpan, self: *mut Self);
 }

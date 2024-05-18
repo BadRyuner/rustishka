@@ -10,9 +10,9 @@ The library provides a mini interface for the Rust library to interact with the 
 ```csharp
 private struct BridgeConvention
 {
-    public delegate* <AppDomain> FGetAppDomain;
     public delegate* <object, Type> FGetType;
     public delegate* <string, bool, Type> FSearchType;
+    public delegate* <Type, int, void*> FGetMethodAtSlot;
     public delegate* <Type, object> FAlloc;
     public delegate* <byte*, int, string> FAllocString;
     public delegate* <Type, int, Array> FAllocArray;
@@ -39,12 +39,12 @@ You can use Sharplab as well.
 # Features
  - Rust lib can search for a type in the DotNet runtime: 
  ```rust
- let integer_type = ctx.search_type_cached(String::from("System.Int32"), false);
+ let integer_type = search_type_cached(&String::from("System.Int32"), false);
  ```
  - Rust lib can allocate objects & arrays: 
  ```rust
- let someType = ctx.search_type_cached(&someTypeAQN, false);
- let obj: *mut NetObject<SomeType> = ctx.allocate(someType);
+ let someType = search_type_cached(&someTypeAQN, false);
+ let obj: *mut NetObject<SomeType> = allocate(someType); // alloc without constructor invoke !!!
  ```
  - Rust lib can call virtual functions:
  ```rust
@@ -55,15 +55,40 @@ You can use Sharplab as well.
  ```rust
  define_virtual!(pub, get_base_type, 11, 4, *mut NetObject<SystemType>);
  ```
- - Rust lib can use almost all of .NET Reflection's features! 
+ where: 11 - row eq `slotId / 8`, 4 - index eq `slotId % 8`
+ - Rust lib can call non-virtual instance and static functions.
+ ```rust
+ someObject.some_instance_method(args);
+ NetObject::<SomeObject>::some_static_method(args)
+ let val: *mut NetObject<SomeObject> = SomeObject::new(args);
+ ```
+ where
+ ```rust
+impl NetObject<SomeObject> {
+    define_function!(pub some_instance_method, 7, self: *mut Self, arg_name: ArgType); // where 7 - slotId
+    define_function!(pub some_static_method, 8, arg_name: ArgType);
+}
+impl SomeObject {
+    define_constructor!(pub new, arg_name: ArgType);
+}
+ ```
+ - Rust lib can use typeof sugar
+```Rust
+pub struct SomeObject { }
+define_typeof!(SomeObject, "SomeObject AssemblyQualifiedName");
+// in method
+let ty : *mut NetObject<SystemType> = SomeObject::type_of();
+```
+ - Rust lib can use almost all of .NET Reflection's features!
+
+  As you can see: it`s very human design, very easy to use. 
 # Examples
 [C# side](https://github.com/badryuner/rustishka/blob/master/Rustishka.Tests/SomeTests.cs)
 
 [Rust side](https://github.com/badryuner/rustishka/blob/master/rustishka_examples/src/lib.rs)
 # TODO
-- Add support for calling non-virtual instance & static functions without reflection i-n-v-o-k-e
 - Add support for field access
 - Add Delegates Support
 - Maybe better reflection?
 - .Net type inheritance in Rust by creating a custom type via .Net TypeBuilder & overriding methodtable entries.
-- Source generators.
+- Source generators (atm it's scary Rustishka.Tools)

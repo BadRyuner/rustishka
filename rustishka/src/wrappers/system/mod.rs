@@ -1,7 +1,9 @@
+pub mod system_activator;
+pub mod primitives;
 pub mod system_delegate;
 pub mod system_array;
 pub mod system_appdomain;
-use crate::{define_virtual, DOTNET_RUNTIME};
+use crate::{define_typeof, define_virtual, DOTNET_RUNTIME};
 
 use self::{system_reflection::SystemType, system_string::SystemString};
 
@@ -40,14 +42,34 @@ impl<Content> NetObject<Content> {
     }
 }
 
+impl<Content: TypeInfoProvider> NetObject<Content> {
+    pub fn box_value(value: Content) -> *mut Self {
+        unsafe {
+            let val = DOTNET_RUNTIME.get_mut().unwrap().allocate(Content::type_of());
+            (*val).content = value;
+            val
+        }
+    }
+}
+
+pub trait TypeInfoProvider {
+    fn type_of() -> *mut NetObject<SystemType>;
+}
+
+impl<Content : TypeInfoProvider> TypeInfoProvider for NetObject<Content> {
+    fn type_of() -> *mut NetObject<SystemType> {
+        Content::type_of()
+    }
+}
+
 pub struct SystemObject { }
+define_typeof!(SystemObject, "System.Object");
 
 pub trait SystemObjectBindings {
     define_virtual!(to_system_string, 0, 1, *mut NetObject<SystemString>);
     define_virtual!(equals, 0, 2, bool, other: *mut NetObject<SystemObject>);
     define_virtual!(get_hashcode, 0, 3, i32);
 }
-
 
 impl SystemObjectBindings for NetObject<SystemObject> {}
 

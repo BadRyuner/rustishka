@@ -1,23 +1,47 @@
 #[macro_export]
 macro_rules! define_virtual {
-    ($func_name:ident, $row:expr, $index:expr, $rett:ty $(, $pn:ident : $pt:ty)*) => {
-        fn $func_name (self: *mut Self, $( $pn: $pt, )* ) -> $rett {
+    ($vi:vis $func_name:ident, $row:expr, $index:expr, $rett:ty $(, $pn:ident : $pt:ty)*) => {
+        $vi fn $func_name (self: *mut Self, $( $pn: $pt, )* ) -> $rett {
             unsafe {
-                let obj = self as *mut NetObject<SystemObject>;
+                let obj = self as *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemObject>;
                 let func_ptr = obj.get_method_table().get_func_at($row, $index);
-                let func: extern "stdcall" fn(*mut NetObject<SystemObject>, $( $pt, )*) -> $rett = core::mem::transmute(func_ptr);
+                let func: extern "stdcall" fn(*mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemObject>, $( $pt, )*) -> $rett = core::mem::transmute(func_ptr);
                 func(obj, $($pn),* )
             }
         }
     };
+}
 
-    (pub, $func_name:ident, $row:expr, $index:expr, $rett:ty $(, $pn:ident : $pt:ty)*) => {
-        pub fn $func_name (self: *mut Self, $( $pn: $pt, )* ) -> $rett {
-            unsafe {
-                let obj = self as *mut NetObject<SystemObject>;
-                let func_ptr = obj.get_method_table().get_func_at($row, $index);
-                let func: extern "stdcall" fn(*mut NetObject<SystemObject>, $( $pt, )*) -> $rett = core::mem::transmute(func_ptr);
-                func(obj, $($pn),* )
+#[macro_export]
+macro_rules! define_function {
+    ($vi:vis $func_name:ident, $slot:expr, $rett:ty $(, $pn:ident : $pt:ty)*) => {
+        $vi fn $func_name ($( $pn: $pt, )* ) -> $rett {
+            let me = <Self as $crate::wrappers::system::TypeInfoProvider>::type_of();
+            let f: extern "stdcall" fn($( $pt, )*) -> $rett = unsafe { core::mem::transmute(me.get_fn_at_slot($slot)) };
+            f($($pn),*)
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! define_constructor {
+    ($vi:vis $func_name:ident $(, $pn:ident : $pt:ty)*) => {
+        pub fn $func_name ($( $pn: $pt, )* ) -> *mut $crate::wrappers::system::NetObject<Self> {
+            let ___args = crate::wrappers::system::system_array::SystemArray::create_object_array(
+                &[ $($pn as *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemObject>),* ]
+            );
+            $crate::wrappers::system::system_activator::Activator::create_instance_1(<Self as $crate::wrappers::system::TypeInfoProvider>::type_of(), ___args) as *mut $crate::wrappers::system::NetObject<Self>
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! define_typeof {
+    ($structure:ty, $name:literal) => {
+        impl $crate::wrappers::system::TypeInfoProvider for $structure {
+            fn type_of() -> *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemType> {
+                static MY_TYPE: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
+                *MY_TYPE.get_or_init(|| $crate::search_type_cached(&String::from($name), true) as usize) as *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemType>
             }
         }
     };

@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
-use crate::wrappers::system::{system_appdomain::AppDomain, system_array::SystemArray, system_reflection::SystemType, system_string::SystemString, NetObject};
+use crate::wrappers::system::{system_array::SystemArray, system_reflection::SystemType, system_string::SystemString, NetObject};
 
 #[repr(C)]
 pub struct DotnetImports {
-    pub get_appdomain: extern "stdcall" fn() -> *mut NetObject<AppDomain>,
     pub get_type: extern "stdcall" fn(*mut usize) -> *mut NetObject<SystemType>,
     pub search_type: extern "stdcall" fn(*mut NetObject<SystemString>, bool) -> *mut NetObject<SystemType>,
+    pub get_fn_at_slot: extern "stdcall" fn (*mut NetObject<SystemType>, i32) -> *mut usize,
     pub allocate: extern "stdcall" fn(*mut NetObject<SystemType>) -> *mut usize,
     pub allocate_string: extern "stdcall" fn(*const u8, i32) -> *mut NetObject<SystemString>,
     pub allocate_array: extern "stdcall" fn(*mut NetObject<SystemType>, i32) -> *mut NetObject<SystemArray<()>>,
@@ -57,6 +57,12 @@ impl DotnetImportsContainer {
                     result
                 },
             }
+        }
+    }
+
+    pub fn get_fn_at_slot(&self, tape: *mut NetObject<SystemType>, slot: i32) -> *mut usize {
+        unsafe {
+            ((*self.0).get_fn_at_slot)(tape, slot)
         }
     }
 
