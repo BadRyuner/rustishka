@@ -138,3 +138,8 @@ extern "stdcall" fn test_pass_func2() -> *mut NetObject<Func2<i32, i32>> {
 
 #[no_mangle]
 extern "stdcall" fn redir_bool(val: i32) -> i32 { val }
+
+#[no_mangle]
+extern "stdcall" fn some_func() {
+    //NetObject::<SystemString>::
+}

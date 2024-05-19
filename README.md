@@ -88,7 +88,6 @@ let ty : *mut NetObject<SystemType> = SomeObject::type_of();
 [Rust side](https://github.com/badryuner/rustishka/blob/master/rustishka_examples/src/lib.rs)
 # TODO
 - Add support for field access
-- Add Delegates Support
 - Maybe better reflection?
 - .Net type inheritance in Rust by creating a custom type via .Net TypeBuilder & overriding methodtable entries.
 - Source generators (atm it's scary Rustishka.Tools)
