@@ -46,7 +46,7 @@ impl DelegateBindings for NetObject<MulticastDelegate> {}
 #[macro_export]
 macro_rules! define_delegate {
     ($rett:ty $(, $pn:ident : $pt:ty)*) => {
-        pub fn new(object: *mut NetObject<SystemObject>, method: extern "stdcall" fn( $( $pn: $pt, )* ) -> $rett ) -> *mut NetObject<Self>  {
+        pub fn new(object: *mut NetObject<SystemObject>, method: usize) -> *mut NetObject<Self>  {
             unsafe {
                 let func: usize = core::mem::transmute(method);
                 let inst = Delegate::internal_alloc(Self::type_of());

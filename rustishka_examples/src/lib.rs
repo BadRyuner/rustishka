@@ -126,20 +126,22 @@ extern "stdcall" fn test_func3(delegate: *mut NetObject<Func3<*mut NetObject<Sys
 
 #[no_mangle]
 extern "stdcall" fn test_pass_func1() -> *mut NetObject<Func1<bool>> {
-    Func1::<bool>::new(std::ptr::null_mut(), always_true)
+    Func1::<bool>::new(std::ptr::null_mut(), always_true as usize)
 }
 
 extern "stdcall" fn always_true() -> bool { true }
 
 #[no_mangle]
 extern "stdcall" fn test_pass_func2() -> *mut NetObject<Func2<i32, i32>> {
-    Func2::<i32, i32>::new(std::ptr::null_mut(), redir_bool)
+    Func2::<i32, i32>::new(std::ptr::null_mut(), redir_bool as usize)
 }
 
 #[no_mangle]
 extern "stdcall" fn redir_bool(val: i32) -> i32 { val }
 
 #[no_mangle]
-extern "stdcall" fn some_func() {
-    //NetObject::<SystemString>::
+extern "stdcall" fn test_pass_func3() -> *mut NetObject<Func1<*mut NetObject<SystemString>>> {
+    let object = SystemObject::type_of().allocate::<SystemObject>();
+    let f =NetObject::<SystemString>::to_system_string;
+    Func1::<NetObject<SystemString>>::new(object, f as usize).cast()
 }

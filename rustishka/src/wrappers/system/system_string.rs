@@ -1,6 +1,6 @@
 use std::ptr;
 
-use crate::imports::DotnetImportsContainer;
+use crate::{define_typeof, imports::DotnetImportsContainer};
 
 use super::{NetObject, SystemObjectBindings};
 
@@ -9,6 +9,8 @@ pub struct SystemString {
     pub length: u32,
     pub chars: [u16; 512]
 }
+
+define_typeof!(SystemString, "System.String");
 
 impl SystemObjectBindings for NetObject<SystemString> {}
 

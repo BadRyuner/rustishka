@@ -86,7 +86,17 @@ public unsafe class TestDelegates
         var func = (delegate*<Func<int, int>>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
             "test_pass_func2");
         Func<int, int> f = func();
-        Assert.Equal(1, f(1)); // why you return 0 WTF unstable shit
+        Assert.Equal(1, f(1));
         Assert.Equal(0, f(0));
+    }
+
+    [Fact]
+    public void TestFuncPass3()
+    {
+        var func = (delegate*<Func<string>>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "test_pass_func3");
+
+        object o = new();
+        Assert.Equal(o.ToString(), func()());
     }
 }
