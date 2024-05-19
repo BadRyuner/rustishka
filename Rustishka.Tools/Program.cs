@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 
@@ -9,7 +10,7 @@ public static unsafe class Program
 {
     public static void Main(string[] args)
     {
-        DisplayType(typeof(Console), pub: true, skipVirtual: false, skipConstructors: false); 
+        DisplayType(typeof(RuntimeHelpers), pub: true, skipVirtual: false, skipConstructors: false); 
         Console.ReadLine();
     }
 
@@ -44,7 +45,7 @@ public static unsafe class Program
                 Console.Write("    define_constructor!(");
                 if (pub) Console.Write("pub ");
                 Console.Write(counter == 0 ? "new" : $"new_{counter}");
-                WriteParams(ctor.GetParameters(), true, false);
+                WriteParams(ctor.GetParameters(), true, false, true);
                 Console.WriteLine(");");
                 counter++;
             }
@@ -69,7 +70,7 @@ public static unsafe class Program
                 if (pub) Console.Write("pub ");
                 Console.Write(JsonNamingPolicy.SnakeCaseLower.ConvertName(method.Name));
                 Console.Write($", {slot / 8}, {slot % 8}, ");
-                Console.Write(ConvertType(method.ReturnType));
+                Console.Write(ConvertType(method.ReturnType, false));
                 WriteParams(method.GetParameters(), false, true);
                 Console.WriteLine(");");
             }
@@ -86,7 +87,7 @@ public static unsafe class Program
             if (pub) Console.Write("pub ");
             Console.Write(JsonNamingPolicy.SnakeCaseLower.ConvertName(method.Name));
             Console.Write($", {slot}, ");
-            Console.Write(ConvertType(method.ReturnType));
+            Console.Write(ConvertType(method.ReturnType, false));
             WriteParams(method.GetParameters(), method.IsStatic, false);
             Console.WriteLine(");");
         }
@@ -94,23 +95,27 @@ public static unsafe class Program
         Console.WriteLine("}");
     }
 
-    public static void WriteParams(ParameterInfo[] parameters, bool isStatic, bool isVirtual)
+    public static void WriteParams(ParameterInfo[] parameters, bool isStatic, bool isVirtual, bool isCtor = false)
     {
         if (!isStatic && !isVirtual)
             Console.Write(", self: *mut Self");
 
         foreach (var parameter in parameters)
         {
-            Console.Write($", {JsonNamingPolicy.SnakeCaseLower.ConvertName(parameter.Name ?? $"unk_{parameter.Position}")} : {ConvertType(parameter.ParameterType)}");
+            Console.Write($", {JsonNamingPolicy.SnakeCaseLower.ConvertName(parameter.Name ?? $"unk_{parameter.Position}")} : {ConvertType(parameter.ParameterType, isCtor)}");
         }
     }
 
-    public static string ConvertType(Type type)
+    public static string ConvertType(Type type, bool wrap)
     {
         if (type.IsSZArray)
-            return $"*mut NetObject<SystemArray<{ConvertType(type.GetElementType()!)}>>";
-        if (type.IsPointer || type.IsByRef)
-            return $"*mut {ConvertType(type.GetElementType()!)}";
+            return $"*mut NetObject<SystemArray<{ConvertType(type.GetElementType()!, wrap)}>>";
+        if (type.IsPointer)
+            return wrap ? $"Ptr<{ConvertType(type.GetElementType()!, wrap)}>"
+                    : $"*mut {ConvertType(type.GetElementType()!, wrap)}";
+        if (type.IsByRef)
+            return wrap ? $"ByRef<{ConvertType(type.GetElementType()!, wrap)}>"
+                : $"*mut {ConvertType(type.GetElementType()!, wrap)}";
         if (!type.IsValueType)
             return $"*mut NetObject<{ToRustName(type)}>";
         return ToRustName(type);

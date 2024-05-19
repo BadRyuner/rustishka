@@ -47,13 +47,15 @@ impl NetObject<SystemString> {
     }
 }
 
+use super::AutoStructBox;
+
 impl SystemString {
     define_constructor!(pub new, value : *mut NetObject<SystemArray<u16>>);
     define_constructor!(pub new_1, value : *mut NetObject<SystemArray<u16>>, start_index : i32, length : i32);
-    define_constructor!(pub new_2, value : *mut u16);
-    define_constructor!(pub new_3, value : *mut u16, start_index : i32, length : i32);
-    define_constructor!(pub new_4, value : *mut i8);
-    define_constructor!(pub new_5, value : *mut i8, start_index : i32, length : i32);
+    //define_constructor!(pub new_2, value : Ptr<u16>);
+    //define_constructor!(pub new_3, value : Ptr<u16>, start_index : i32, length : i32);
+    //define_constructor!(pub new_4, value : Ptr<i8>);
+    //define_constructor!(pub new_5, value : Ptr<i8>, start_index : i32, length : i32);
     //define_constructor!(pub new_6, value : *mut i8, start_index : i32, length : i32, enc : *mut NetObject<Encoding>);
     define_constructor!(pub new_7, c : u16, count : i32);
     //define_constructor!(pub new_8, value : ReadOnlySpan`1);

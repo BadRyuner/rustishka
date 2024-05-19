@@ -1,3 +1,4 @@
+pub mod system_runtimehelpers;
 pub mod system_console;
 pub mod system_activator;
 pub mod primitives;
@@ -41,6 +42,10 @@ impl<Content> NetObject<Content> {
             DOTNET_RUNTIME.get_mut().unwrap().get_type(self)
         }
     }
+
+    pub fn _box_value(self: *mut Self) -> *mut Self {
+        self
+    }
 }
 
 impl<Content: TypeInfoProvider> NetObject<Content> {
@@ -63,9 +68,58 @@ impl<Content : TypeInfoProvider> TypeInfoProvider for NetObject<Content> {
     }
 }
 
-impl<Content : TypeInfoProvider> TypeInfoProvider for *mut NetObject<Content> {
+#[repr(C)]
+pub struct ByRef<T> {
+    pub inner: *mut T
+}
+
+impl<T : TypeInfoProvider> ByRef<T> {
+    pub fn new(t: *mut T) -> Self {
+        Self {
+            inner: t
+        }
+    }
+
+    pub fn _box_value(self) -> *mut NetObject<ByRef<T>> {
+        unimplemented!()
+    }
+} 
+
+impl<Content : TypeInfoProvider> TypeInfoProvider for ByRef<Content> {
     fn type_of() -> *mut NetObject<SystemType> {
-        Content::type_of()
+        Content::type_of().make_by_ref_type()
+    }
+}
+
+#[repr(C)]
+pub struct Ptr<T> {
+    pub inner: *mut T
+}
+
+impl<T: TypeInfoProvider> Ptr<T> {
+    pub fn new(t: *mut T) -> Self {
+        Self {
+            inner: t
+        }
+    }
+
+    pub fn _box_value(self) -> *mut NetObject<Ptr<T>> {
+        //system_runtimehelpers::RuntimeHelpers::_box(unsafe { (*Self::type_of()).content.handle }, self.inner as _) as _
+        unimplemented!()
+    }
+} 
+
+impl<Content : TypeInfoProvider> TypeInfoProvider for Ptr<Content> {
+    fn type_of() -> *mut NetObject<SystemType> {
+        Content::type_of().make_pointer_type()
+    }
+}
+
+pub trait AutoStructBox: TypeInfoProvider + Sized {
+    fn _box_value(self) -> *mut NetObject<Self> {
+        let result = Self::type_of().allocate::<Self>();
+        unsafe { (*result).content = self }
+        result
     }
 }
 

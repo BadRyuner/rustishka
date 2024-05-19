@@ -31,8 +31,8 @@ macro_rules! define_function {
 macro_rules! define_constructor {
     ($vi:vis $func_name:ident $(, $pn:ident : $pt:ty)*) => {
         pub fn $func_name ($( $pn: $pt, )* ) -> *mut $crate::wrappers::system::NetObject<Self> {
-            let ___args = crate::wrappers::system::system_array::SystemArray::create_object_array(
-                &[ $($pn as *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemObject>),* ]
+            let ___args = $crate::wrappers::system::system_array::SystemArray::create_object_array(
+                &[ $($pn._box_value() as *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemObject>),* ]
             );
             $crate::wrappers::system::system_activator::Activator::create_instance_1(<Self as $crate::wrappers::system::TypeInfoProvider>::type_of(), ___args) as *mut $crate::wrappers::system::NetObject<Self>
         }

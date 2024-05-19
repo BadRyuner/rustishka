@@ -1,7 +1,7 @@
 use rustishka::wrappers::system::system_appdomain::AppDomain;
 use rustishka::wrappers::system::system_delegate::{Action, Action1, Action2, Action3, DelegateBindings, Func1, Func2, Func3};
 use rustishka::wrappers::system::system_reflection::AssemblyName;
-use rustishka::wrappers::system::TypeInfoProvider;
+use rustishka::wrappers::system::{Ptr, TypeInfoProvider};
 use rustishka::{allocate_string, initialize_rustishka, search_type_cached, DOTNET_RUNTIME};
 use rustishka::wrappers::system::{system_delegate::Delegate, system_reflection::MethodBaseBindings};
 
@@ -146,6 +146,8 @@ extern "stdcall" fn test_pass_func3() -> *mut NetObject<Func1<*mut NetObject<Sys
     Func1::<NetObject<SystemString>>::new(object, f as usize).cast()
 }
 
-extern "stdcall" fn test() {
-    
+#[no_mangle]
+extern "stdcall" fn create_string_from_ctor() -> *mut NetObject<SystemString> {
+    let cursed = "ololo pish pish\0".as_ptr();
+    SystemString::new_4(Ptr::<i8>::new(cursed as _))
 }
