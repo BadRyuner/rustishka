@@ -1,3 +1,4 @@
+pub mod system_console;
 pub mod system_activator;
 pub mod primitives;
 pub mod system_delegate;
@@ -57,6 +58,12 @@ pub trait TypeInfoProvider {
 }
 
 impl<Content : TypeInfoProvider> TypeInfoProvider for NetObject<Content> {
+    fn type_of() -> *mut NetObject<SystemType> {
+        Content::type_of()
+    }
+}
+
+impl<Content : TypeInfoProvider> TypeInfoProvider for *mut NetObject<Content> {
     fn type_of() -> *mut NetObject<SystemType> {
         Content::type_of()
     }

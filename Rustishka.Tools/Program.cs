@@ -9,23 +9,23 @@ public static unsafe class Program
 {
     public static void Main(string[] args)
     {
-        DisplayType(typeof(Delegate), pub: true, skipVirtual: false, skipConstructors: false); 
+        DisplayType(typeof(Console), pub: true, skipVirtual: false, skipConstructors: false); 
         Console.ReadLine();
     }
 
     private static readonly BindingFlags AllInstance =
-        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        BindingFlags.Instance | BindingFlags.Public ;//| BindingFlags.NonPublic;
 
     private static readonly BindingFlags AllStatic =
-        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+        BindingFlags.Static | BindingFlags.Public ;//| BindingFlags.NonPublic;
 
     public static void DisplayType(Type type, bool pub = false, bool skipVirtual = false, bool skipConstructors = false)
     {
         var irmi = Type.GetType("System.RuntimeMethodHandleInternal")!;
-        var getSlot = (delegate* <IntPtr, int>)typeof(RuntimeMethodHandle).GetMethod("GetSlot", AllStatic, [irmi])!
+        var getSlot = (delegate* <IntPtr, int>)typeof(RuntimeMethodHandle).GetMethod("GetSlot", AllStatic | BindingFlags.NonPublic, [irmi])!
             .MethodHandle.GetFunctionPointer();
         var rt = Type.GetType("System.RuntimeType")!;
-        var getNumVirtuals = (delegate*<Type, int>)typeof(RuntimeTypeHandle).GetMethod("GetNumVirtuals", AllStatic, [rt])!
+        var getNumVirtuals = (delegate*<Type, int>)typeof(RuntimeTypeHandle).GetMethod("GetNumVirtuals", AllStatic | BindingFlags.NonPublic, [rt])!
             .MethodHandle.GetFunctionPointer();
 
         var virtuals = getNumVirtuals(type);
@@ -109,6 +109,8 @@ public static unsafe class Program
     {
         if (type.IsSZArray)
             return $"*mut NetObject<SystemArray<{ConvertType(type.GetElementType()!)}>>";
+        if (type.IsPointer || type.IsByRef)
+            return $"*mut {ConvertType(type.GetElementType()!)}";
         if (!type.IsValueType)
             return $"*mut NetObject<{ToRustName(type)}>";
         return ToRustName(type);
@@ -123,13 +125,13 @@ public static unsafe class Program
             case "Object": return "SystemObject";
             case "Boolean": return "bool";
             case "SByte": return "i8";
-            case "Short": return "i16";
+            case "Int16": return "i16";
             case "Int32": return "i32";
             case "Int64": return "i64";
             case "IntPtr": return "isize";
             case "Byte": return "u8";
             case "Char":
-            case "Ushort": return "u16";
+            case "UInt16": return "u16";
             case "UInt32": return "u32";
             case "UInt64": return "u64";
             case "UIntPtr": return "usize";

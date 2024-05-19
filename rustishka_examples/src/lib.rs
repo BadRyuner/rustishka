@@ -145,3 +145,7 @@ extern "stdcall" fn test_pass_func3() -> *mut NetObject<Func1<*mut NetObject<Sys
     let f =NetObject::<SystemString>::to_system_string;
     Func1::<NetObject<SystemString>>::new(object, f as usize).cast()
 }
+
+extern "stdcall" fn test() {
+    
+}
