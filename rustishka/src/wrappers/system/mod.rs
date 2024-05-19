@@ -72,6 +72,12 @@ impl<Content : TypeInfoProvider> TypeInfoProvider for NetObject<Content> {
     }
 }
 
+impl<Content : TypeInfoProvider> TypeInfoProvider for *mut NetObject<Content> {
+    fn type_of() -> *mut NetObject<SystemType> {
+        Content::type_of()
+    }
+}
+
 #[repr(C)]
 pub struct ByRef<T> {
     pub inner: *mut T

@@ -43,9 +43,9 @@ macro_rules! define_constructor {
 macro_rules! define_typeof {
     ($structure:ty, $name:literal) => {
         impl $crate::wrappers::system::TypeInfoProvider for $structure {
-            fn type_of() -> *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemType> {
+            fn type_of() -> *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::system_reflection::SystemType> {
                 static MY_TYPE: std::sync::OnceLock<usize> = std::sync::OnceLock::new();
-                *MY_TYPE.get_or_init(|| $crate::search_type_cached(&String::from($name), true) as usize) as *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::SystemType>
+                *MY_TYPE.get_or_init(|| $crate::search_type_cached(&String::from($name), true) as usize) as *mut $crate::wrappers::system::NetObject<$crate::wrappers::system::system_reflection::SystemType>
             }
         }
     };

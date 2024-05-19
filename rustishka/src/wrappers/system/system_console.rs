@@ -2,7 +2,7 @@ use crate::{define_function, define_typeof, wrappers::system::{system_array::Sys
 
 pub struct Console { }
 
-define_typeof!(Console, "System.Console");
+define_typeof!(Console, "System.Console, System.Console, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
 
 impl Console {
     define_function!(pub get_cursor_left, 47, i32);
@@ -32,19 +32,19 @@ impl Console {
     //define_function!(pub set_error, 72, (), new_error : *mut NetObject<TextWriter>);
     define_function!(pub read, 73, i32);
     define_function!(pub read_line, 74, *mut NetObject<SystemString>);
-    define_function!(pub write_line_1, 75, ());
-    define_function!(pub write_line_2, 76, (), value : bool);
-    define_function!(pub write_line_3, 77, (), value : u16);
+    define_function!(pub write_line, 75, ());
+    define_function!(pub write_line_bool, 76, (), value : bool);
+    define_function!(pub write_line_u16, 77, (), value : u16);
     define_function!(pub write_line_4, 78, (), buffer : *mut NetObject<SystemArray<u16>>);
     define_function!(pub write_line_5, 79, (), buffer : *mut NetObject<SystemArray<u16>>, index : i32, count : i32);
-    define_function!(pub write_line_6, 81, (), value : f64);
-    define_function!(pub write_line_7, 82, (), value : f32);
-    define_function!(pub write_line_8, 83, (), value : i32);
-    define_function!(pub write_line_9, 84, (), value : u32);
-    define_function!(pub write_line_10, 85, (), value : i64);
-    define_function!(pub write_line_11, 86, (), value : u64);
-    define_function!(pub write_line_12, 87, (), value : *mut NetObject<SystemObject>);
-    define_function!(pub write_line_13, 88, (), value : *mut NetObject<SystemString>);
+    define_function!(pub write_line_f64, 81, (), value : f64);
+    define_function!(pub write_line_f32, 82, (), value : f32);
+    define_function!(pub write_line_i32, 83, (), value : i32);
+    define_function!(pub write_line_u32, 84, (), value : u32);
+    define_function!(pub write_line_i64, 85, (), value : i64);
+    define_function!(pub write_line_u64, 86, (), value : u64);
+    define_function!(pub write_line_object, 87, (), value : *mut NetObject<SystemObject>);
+    define_function!(pub write_line_string, 88, (), value : *mut NetObject<SystemString>);
     define_function!(pub write_line_14, 89, (), format : *mut NetObject<SystemString>, arg0 : *mut NetObject<SystemObject>);
     define_function!(pub write_line_15, 90, (), format : *mut NetObject<SystemString>, arg0 : *mut NetObject<SystemObject>, arg1 : *mut NetObject<SystemObject>);
     define_function!(pub write_line_16, 91, (), format : *mut NetObject<SystemString>, arg0 : *mut NetObject<SystemObject>, arg1 : *mut NetObject<SystemObject>, arg2 : *mut NetObject<SystemObject>);
