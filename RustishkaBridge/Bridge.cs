@@ -35,6 +35,9 @@ public static unsafe class Bridge
         Convention->FTryCatch = &TryCatch;
         Debug.Assert((UIntPtr)Convention->FTryCatch != 0);
 
+        Convention->FThrow = &ThrowHelper;
+        Debug.Assert((UIntPtr)Convention->FThrow != 0);
+
         var rmhi = Type.GetType("System.RuntimeMethodHandleInternal")!;
         GetSlot = (delegate*<IntPtr, int>)typeof(RuntimeMethodHandle)
             .GetMethod("GetSlot", BindingFlags.Static | BindingFlags.NonPublic, [rmhi])!
@@ -69,11 +72,11 @@ public static unsafe class Bridge
         return result;
     }
 
-    private static Exception? TryCatch(delegate*<nint, nint> func, nint data, nint* result)
+    private static Exception? TryCatch(delegate*<void> func)
     {
         try
         {
-            *result = func(data);
+            func();
         }
         catch (Exception e)
         {
@@ -82,6 +85,8 @@ public static unsafe class Bridge
 
         return null;
     }
+
+    private static void ThrowHelper(Exception e) => throw e; 
 
     private static readonly BridgeConvention* Convention;
     
@@ -94,7 +99,8 @@ public static unsafe class Bridge
         public delegate* <Type, object> FAlloc;
         public delegate* <byte*, int, string> FAllocString;
         public delegate* <Type, int, Array> FAllocArray;
-        public delegate* <delegate*<nint, nint>, nint, nint*, Exception> FTryCatch;
+        public delegate* <delegate*<void>, Exception> FTryCatch;
+        public delegate* <Exception, void> FThrow;
     }
 
     /// <summary>

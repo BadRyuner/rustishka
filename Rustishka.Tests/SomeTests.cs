@@ -110,4 +110,28 @@ public unsafe class SomeTests
         Assert.Equal("PoopAssembly", ass.Name);
         Assert.Equal(new(1,2,3,4), ass.Version);
     }
+
+    //[Fact]
+    public void ThrowSomeErrors()
+    {
+        try
+        {
+            var func = (delegate*<void>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+                "create_and_throw");
+            func();
+        }
+        catch (Exception ex)
+        {
+            // cursed. It`s works, but xUnit ignores this Assert wtf
+            Assert.StartsWith("JUST DO IT!", ex.Message);
+        }
+    }
+
+    [Fact]
+    public void AllocListAndFill()
+    {
+        var func = (delegate*<List<int>>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "alloc_list_and_fill");
+        Assert.Equal([0,1,2,3,4,5,6,7,8,9], func());
+    }
 }

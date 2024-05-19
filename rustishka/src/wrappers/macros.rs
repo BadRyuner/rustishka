@@ -71,6 +71,15 @@ macro_rules! managed_array {
 }
 
 #[macro_export]
+macro_rules! throw {
+    ($err:expr) => {
+        unsafe {
+            DOTNET_RUNTIME.get_mut().unwrap().throw($err);
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! initialize_rustishka {
     () => {
         #[no_mangle]

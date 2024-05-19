@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
-using System.Text;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 
 namespace Rustishka.Tools;
@@ -10,7 +10,7 @@ public static unsafe class Program
 {
     public static void Main(string[] args)
     {
-        DisplayType(typeof(RuntimeHelpers), pub: true, skipVirtual: false, skipConstructors: false); 
+        DisplayType(typeof(List<>), pub: true, skipVirtual: false, skipConstructors: false); 
         Console.ReadLine();
     }
 
@@ -78,7 +78,7 @@ public static unsafe class Program
 
         Console.WriteLine("\n    // Non-Virtual functions");
 
-        foreach (var method in type.GetMethods(AllInstance | AllStatic).Where(_ => !_.IsVirtual))
+        foreach (var method in type.GetMethods(AllInstance | AllStatic).Where(_ => !_.IsVirtual).OrderBy(_ => _.IsStatic))
         {
             if (method.DeclaringType != type) continue;
 

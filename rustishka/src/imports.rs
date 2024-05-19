@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::wrappers::system::{system_array::SystemArray, system_reflection::SystemType, system_string::SystemString, NetObject};
+use crate::wrappers::system::{system_array::SystemArray, system_exception::Exception, system_reflection::SystemType, system_string::SystemString, NetObject};
 
 #[repr(C)]
 pub struct DotnetImports {
@@ -10,7 +10,8 @@ pub struct DotnetImports {
     pub allocate: extern "stdcall" fn(*mut NetObject<SystemType>) -> *mut usize,
     pub allocate_string: extern "stdcall" fn(*const u8, i32) -> *mut NetObject<SystemString>,
     pub allocate_array: extern "stdcall" fn(*mut NetObject<SystemType>, i32) -> *mut NetObject<SystemArray<()>>,
-    pub try_catch: extern "stdcall" fn(extern "stdcall" fn(*mut usize) -> *mut usize, *mut usize, *mut usize) -> *mut usize
+    pub try_catch: extern "stdcall" fn(extern "stdcall" fn()) -> *mut NetObject<Exception>,
+    pub throw: extern "stdcall" fn(*mut NetObject<Exception>)
 }
 
 #[derive(Debug)]
@@ -84,4 +85,9 @@ impl DotnetImportsContainer {
         }
     }
 
+    pub fn throw(&self, exception: *mut NetObject<Exception>) {
+        unsafe {
+            ((*self.0).throw)(exception)
+        }
+    }
 }

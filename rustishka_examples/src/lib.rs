@@ -1,8 +1,10 @@
 use rustishka::wrappers::system::system_appdomain::AppDomain;
 use rustishka::wrappers::system::system_delegate::{Action, Action1, Action2, Action3, DelegateBindings, Func1, Func2, Func3};
+use rustishka::wrappers::system::system_exception::Exception;
+use rustishka::wrappers::system::system_list::List;
 use rustishka::wrappers::system::system_reflection::AssemblyName;
-use rustishka::wrappers::system::{Ptr, TypeInfoProvider};
-use rustishka::{allocate_string, initialize_rustishka, search_type_cached, DOTNET_RUNTIME};
+use rustishka::wrappers::system::TypeInfoProvider;
+use rustishka::{allocate_string, initialize_rustishka, search_type_cached, throw, DOTNET_RUNTIME};
 use rustishka::wrappers::system::{system_delegate::Delegate, system_reflection::MethodBaseBindings};
 
 use rustishka::wrappers::system::{system_array::SystemArray, system_reflection::{BindingFlags, SystemType}, system_string::SystemString, NetObject, SystemObject, SystemObjectBindings};
@@ -147,7 +149,15 @@ extern "stdcall" fn test_pass_func3() -> *mut NetObject<Func1<*mut NetObject<Sys
 }
 
 #[no_mangle]
-extern "stdcall" fn create_string_from_ctor() -> *mut NetObject<SystemString> {
-    let cursed = "ololo pish pish\0".as_ptr();
-    SystemString::new_4(Ptr::<i8>::new(cursed as _))
+extern "stdcall" fn create_and_throw() {
+    throw!(Exception::new_1(allocate_string(&String::from("JUST DO IT!"))));
+}
+
+#[no_mangle]
+extern "stdcall" fn alloc_list_and_fill() -> *mut NetObject<List<i32>> {
+    let list = List::<i32>::new();
+    for x in 0..10 {
+        list.add_item(x);
+    }
+    list
 }
