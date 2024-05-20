@@ -1,7 +1,6 @@
-﻿using System.Reflection;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Collections;
+using System.Numerics;
+using System.Reflection;
 using System.Text.Json;
 
 namespace Rustishka.Tools;
@@ -10,7 +9,8 @@ public static unsafe class Program
 {
     public static void Main(string[] args)
     {
-        DisplayType(typeof(List<>), pub: true, skipVirtual: false, skipConstructors: false); 
+        //DisplayType(typeof(IList), pub: true, skipVirtual: false, skipConstructors: false);
+        DisplayInterface(typeof(IEnumerable));
         Console.ReadLine();
     }
 
@@ -18,7 +18,7 @@ public static unsafe class Program
         BindingFlags.Instance | BindingFlags.Public ;//| BindingFlags.NonPublic;
 
     private static readonly BindingFlags AllStatic =
-        BindingFlags.Static | BindingFlags.Public ;//| BindingFlags.NonPublic;
+        BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
     public static void DisplayType(Type type, bool pub = false, bool skipVirtual = false, bool skipConstructors = false)
     {
@@ -95,6 +95,55 @@ public static unsafe class Program
         Console.WriteLine("}");
     }
 
+    public static void DisplayInterface(Type type)
+    {
+        Console.WriteLine($"pub struct {type.Name} {{ }}");
+
+        Console.WriteLine($"\ndefine_typeof!({type.Name}, \"{type.AssemblyQualifiedName}\");\n\nimpl NetObject<{type.Name}> {{");
+
+        int id = 0;
+        foreach (var method in type.GetMethods(AllInstance))
+        {
+            Console.Write($"    pub fn {JsonNamingPolicy.SnakeCaseLower.ConvertName(method.Name)}(self: *mut Self");
+            var p = method.GetParameters();
+            foreach (var parameter in p)
+            {
+                Console.Write($", {JsonNamingPolicy.SnakeCaseLower.ConvertName(parameter.Name ?? $"unk_{parameter.Position}")} : {ConvertType(parameter.ParameterType, true)}");
+            }
+            Console.WriteLine($") -> {ConvertType(method.ReturnType, false)} {{");
+            Console.Write($"        let method = resolve_interface_method!(self, Self, {id}, {p.Length}");
+            if (p.Length > 0)
+            {
+                foreach (var parameter in p)
+                    Console.Write($", {ConvertType(parameter.ParameterType, true)}");
+            }
+            Console.WriteLine(");");
+            bool unwrap = method.ReturnType.IsValueType && method.ReturnType != typeof(void);
+            Console.Write($"        {(unwrap ? "*(" : null)}method.invoke(self as _, managed_array!(SystemObject, {p.Length}");
+            if (p.Length > 0)
+            {
+                foreach (var parameter in p)
+                {
+                    Console.Write($", {JsonNamingPolicy.SnakeCaseLower.ConvertName(parameter.Name ?? $"unk_{parameter.Position}")}");
+                    if (parameter.ParameterType.IsValueType)
+                        Console.Write("._box_value() as _");
+                }
+            }
+            Console.Write("))");
+            if (unwrap)
+                Console.WriteLine(" as *mut NetObject<_>).get_content()");
+            else if (method.ReturnType == typeof(void))
+                Console.WriteLine(';');
+            else
+                Console.WriteLine();
+            Console.WriteLine("    }");
+
+            id++;
+        }
+
+        Console.WriteLine("}");
+    }
+
     public static void WriteParams(ParameterInfo[] parameters, bool isStatic, bool isVirtual, bool isCtor = false)
     {
         if (!isStatic && !isVirtual)
@@ -108,6 +157,8 @@ public static unsafe class Program
 
     public static string ConvertType(Type type, bool wrap)
     {
+        if (type.IsGenericTypeParameter)
+            return type.ToString();
         if (type.IsSZArray)
             return $"*mut NetObject<SystemArray<{ConvertType(type.GetElementType()!, wrap)}>>";
         if (type.IsPointer)

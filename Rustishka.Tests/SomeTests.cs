@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -133,5 +134,27 @@ public unsafe class SomeTests
         var func = (delegate*<List<int>>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
             "alloc_list_and_fill");
         Assert.Equal([0,1,2,3,4,5,6,7,8,9], func());
+    }
+
+    [Fact]
+    public void EnumerateToList()
+    {
+        var func = (delegate*<IEnumerator, List<int>>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "enumerate_to_list");
+        List<int> list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        var enumerator = (list as IEnumerable).GetEnumerator();
+        var result = func(enumerator);
+        Assert.Equal(list, result);
+        ((IDisposable)enumerator).Dispose();
+    }
+
+    [Fact]
+    public void TestIList()
+    {
+        var func = (delegate*<IList<int>, List<int>>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "do_smth_with_ilist");
+        List<int> list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        var result = func(list);
+        Assert.Equal(list, result);
     }
 }

@@ -51,11 +51,37 @@ macro_rules! define_typeof {
     };
 }
 
+#[macro_export]
+macro_rules! resolve_interface_method {
+    ($self:expr, $_self:tt, $func_id:literal, $args_count:literal $(, $pt:ty)*) => {
+        {
+            let ___args_sig = managed_array!($crate::wrappers::system::system_reflection::SystemType, 1 + $args_count, <$_self as $crate::wrappers::system::TypeInfoProvider>::type_of() $(, <$pt as $crate::wrappers::system::TypeInfoProvider>::type_of())*);
+            let obj_type = $self.get_type();
+            let interface = $_self::type_of();
+            let target = interface.get_methods($crate::wrappers::system::system_reflection::BindingFlags::PublicInstance).as_slice()[$func_id];
+            let params = target.get_parameters();
+            let params_slice = params.as_slice();
+            let mapped_params = managed_array!(SystemType, params_slice.len() as i32);
+            let mapped_params_slice = mapped_params.as_slice();
+            for (index, t) in params_slice.iter().enumerate() {
+                mapped_params_slice[index] = t.get_parameter_type();
+            }
+            obj_type.get_method_3($crate::wrappers::system::system_reflection::MemberInfoBindings::get_name(target), mapped_params)
+        }
+    };
+}
+
 // WHY RUST WHYYYYYYYYYYYYYY
 
 #[macro_export]
 macro_rules! managed_array {
-    ($tape:ty, $size:literal $(, $pn:expr )*) => {
+    ($tape:ty, $size:expr) => {
+        {
+            let pypy = <$tape as $crate::wrappers::system::TypeInfoProvider>::type_of();
+            $crate::allocate_array(pypy, $size)
+        }
+    };
+    ($tape:ty, $size:expr $(, $pn:expr )*) => {
         {
             let pypy = <$tape as $crate::wrappers::system::TypeInfoProvider>::type_of();
             let arr = $crate::allocate_array(pypy, $size);

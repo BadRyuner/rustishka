@@ -325,7 +325,7 @@ pub trait MethodBaseBindings {
     define_virtual!(get_contains_generic_parameters, 3, 5, bool);
     //define_virtual!(invoke, 3, 6, *mut NetObject<SystemObject>, obj : *mut NetObject<SystemObject>, invoke_attr : BindingFlags, binder : *mut NetObject<Binder>, parameters : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>, culture : *mut NetObject<CultureInfo>);
     define_virtual!(invoke_impl, 3, 6, *mut NetObject<SystemObject>, obj : *mut NetObject<SystemObject>, invoke_attr : u32, binder : usize, parameters : *mut NetObject<SystemArray<*mut NetObject<SystemObject>>>, culture : usize);
-    //define_virtual!(get_method_handle, 3, 7, RuntimeMethodHandle);
+    define_virtual!(get_method_handle, 3, 7, &'static RuntimeMethodHandle);
     define_virtual!(get_is_security_critical, 4, 0, bool);
     define_virtual!(get_is_security_safe_critical, 4, 1, bool);
     define_virtual!(get_is_security_transparent, 4, 2, bool);
@@ -379,6 +379,20 @@ bitflags! {
 }
 
 impl MethodBaseBindings for NetObject<MethodBase> {}
+
+#[repr(C)]
+pub struct RuntimeMethodHandle {
+    pub handle: isize
+}
+
+define_typeof!(RuntimeMethodHandle, "System.RuntimeMethodHandle");
+
+impl RuntimeMethodHandle {
+    define_function!(pub get_value, 9, isize, self: &Self);
+    define_function!(pub is_null_handle, 14, bool, self: &Self);
+    define_function!(get_fn_pointer, 15, isize, handle : isize);
+    define_function!(pub get_slot, 28, i32, method : isize);
+}
 
 pub struct ParameterInfo { }
 

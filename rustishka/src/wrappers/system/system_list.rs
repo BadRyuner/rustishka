@@ -1,8 +1,10 @@
+use crate::wrappers::system::system_reflection::MethodBaseBindings;
+use crate::wrappers::system::AutoStructBox;
 use std::marker::PhantomData;
 
-use crate::{define_constructor, define_function, define_virtual, managed_array, search_type_cached, wrappers::system::{system_delegate::Action1, AutoStructBox, NetObject}};
+use crate::{define_constructor, define_function, define_typeof, define_virtual, managed_array, resolve_interface_method, search_type_cached, wrappers::system::{system_delegate::Action1, NetObject}};
 
-use super::{system_array::SystemArray, system_reflection::SystemType, TypeInfoProvider};
+use super::{system_array::SystemArray, system_ienumerator::IEnumerator, system_reflection::SystemType, SystemObject, TypeInfoProvider};
 
 pub struct List<T: TypeInfoProvider> {
     a: PhantomData<T>
@@ -83,4 +85,90 @@ impl<T: TypeInfoProvider> NetObject<List<T>> {
     define_function!(pub to_array, 76, *mut NetObject<SystemArray<T>>, self: *mut Self);
     define_function!(pub trim_excess, 77, (), self: *mut Self);
     //define_function!(pub true_for_all, 78, bool, self: *mut Self, match : *mut NetObject<Predicate<T>>);
+}
+
+
+pub struct IList { }
+
+define_typeof!(IList, "System.Collections.IList");
+
+impl NetObject<IList> {
+    pub fn get_item(self: *mut Self, index : i32) -> *mut NetObject<SystemObject> {
+        let method = resolve_interface_method!(self, Self, 0, 1, i32);
+        method.invoke(self as _, managed_array!(SystemObject, 1, index._box_value() as _))
+    }
+    pub fn set_item(self: *mut Self, index : i32, value : *mut NetObject<SystemObject>) -> () {
+        let method = resolve_interface_method!(self, Self, 1, 2, i32, *mut NetObject<SystemObject>);
+        method.invoke(self as _, managed_array!(SystemObject, 2, index._box_value() as _, value));
+    }
+    pub fn add(self: *mut Self, value : *mut NetObject<SystemObject>) -> i32 {
+        let method = resolve_interface_method!(self, Self, 2, 1, *mut NetObject<SystemObject>);
+        *(method.invoke(self as _, managed_array!(SystemObject, 1, value)) as *mut NetObject<_>).get_content()
+    }
+    pub fn contains(self: *mut Self, value : *mut NetObject<SystemObject>) -> bool {
+        let method = resolve_interface_method!(self, Self, 3, 1, *mut NetObject<SystemObject>);
+        *(method.invoke(self as _, managed_array!(SystemObject, 1, value)) as *mut NetObject<_>).get_content()
+    }
+    pub fn clear(self: *mut Self) -> () {
+        let method = resolve_interface_method!(self, Self, 4, 0);
+        method.invoke(self as _, managed_array!(SystemObject, 0));
+    }
+    pub fn get_is_read_only(self: *mut Self) -> bool {
+        let method = resolve_interface_method!(self, Self, 5, 0);
+        *(method.invoke(self as _, managed_array!(SystemObject, 0)) as *mut NetObject<_>).get_content()
+    }
+    pub fn get_is_fixed_size(self: *mut Self) -> bool {
+        let method = resolve_interface_method!(self, Self, 6, 0);
+        *(method.invoke(self as _, managed_array!(SystemObject, 0)) as *mut NetObject<_>).get_content()
+    }
+    pub fn index_of(self: *mut Self, value : *mut NetObject<SystemObject>) -> i32 {
+        let method = resolve_interface_method!(self, Self, 7, 1, *mut NetObject<SystemObject>);
+        *(method.invoke(self as _, managed_array!(SystemObject, 1, value)) as *mut NetObject<_>).get_content()
+    }
+    pub fn insert(self: *mut Self, index : i32, value : *mut NetObject<SystemObject>) -> () {
+        let method = resolve_interface_method!(self, Self, 8, 2, i32, *mut NetObject<SystemObject>);
+        method.invoke(self as _, managed_array!(SystemObject, 2, index._box_value() as _, value));
+    }
+    pub fn remove(self: *mut Self, value : *mut NetObject<SystemObject>) -> () {
+        let method = resolve_interface_method!(self, Self, 9, 1, *mut NetObject<SystemObject>);
+        method.invoke(self as _, managed_array!(SystemObject, 1, value));
+    }
+    pub fn remove_at(self: *mut Self, index : i32) -> () {
+        let method = resolve_interface_method!(self, Self, 10, 1, i32);
+        method.invoke(self as _, managed_array!(SystemObject, 1, index._box_value() as _));
+    }
+}
+
+pub struct ICollection { }
+
+define_typeof!(ICollection, "System.Collections.ICollection");
+
+impl NetObject<ICollection> {
+    pub fn copy_to<T: TypeInfoProvider>(self: *mut Self, array : *mut NetObject<SystemArray<T>>, index : i32) -> () {
+        let method = resolve_interface_method!(self, Self, 0, 2, *mut NetObject<SystemArray<T>>, i32);
+        method.invoke(self as _, managed_array!(SystemObject, 2, array as _, index._box_value() as _));
+    }
+    pub fn get_count(self: *mut Self) -> i32 {
+        let method = resolve_interface_method!(self, Self, 1, 0);
+        *(method.invoke(self as _, managed_array!(SystemObject, 0)) as *mut NetObject<_>).get_content()
+    }
+    pub fn get_sync_root(self: *mut Self) -> *mut NetObject<SystemObject> {
+        let method = resolve_interface_method!(self, Self, 2, 0);
+        method.invoke(self as _, managed_array!(SystemObject, 0))
+    }
+    pub fn get_is_synchronized(self: *mut Self) -> bool {
+        let method = resolve_interface_method!(self, Self, 3, 0);
+        *(method.invoke(self as _, managed_array!(SystemObject, 0)) as *mut NetObject<_>).get_content()
+    }
+}
+
+pub struct IEnumerable { }
+
+define_typeof!(IEnumerable, "System.Collections.IEnumerable");
+
+impl NetObject<IEnumerable> {
+    pub fn get_enumerator(self: *mut Self) -> *mut NetObject<IEnumerator> {
+        let method = resolve_interface_method!(self, Self, 0, 0);
+        method.invoke(self as _, managed_array!(SystemObject, 0)) as _
+    }
 }

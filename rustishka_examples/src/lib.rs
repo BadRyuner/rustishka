@@ -1,7 +1,8 @@
 use rustishka::wrappers::system::system_appdomain::AppDomain;
 use rustishka::wrappers::system::system_delegate::{Action, Action1, Action2, Action3, DelegateBindings, Func1, Func2, Func3};
 use rustishka::wrappers::system::system_exception::Exception;
-use rustishka::wrappers::system::system_list::List;
+use rustishka::wrappers::system::system_ienumerator::IEnumerator;
+use rustishka::wrappers::system::system_list::{ICollection, IList, List};
 use rustishka::wrappers::system::system_reflection::AssemblyName;
 use rustishka::wrappers::system::TypeInfoProvider;
 use rustishka::{allocate_string, initialize_rustishka, search_type_cached, throw, DOTNET_RUNTIME};
@@ -158,6 +159,27 @@ extern "stdcall" fn alloc_list_and_fill() -> *mut NetObject<List<i32>> {
     let list = List::<i32>::new();
     for x in 0..10 {
         list.add_item(x);
+    }
+    list
+}
+
+#[no_mangle]
+extern "stdcall" fn enumerate_to_list(enumerator: *mut NetObject<IEnumerator>) -> *mut NetObject<List<i32>> {
+    let list = List::<i32>::new();
+    while enumerator.move_next() {
+        let obj = enumerator.current() as *mut NetObject<i32>;
+        list.add_item(*obj.get_content())
+    }
+    list
+}
+
+#[no_mangle]
+extern "stdcall" fn do_smth_with_ilist(ilist: *mut NetObject<IList>) -> *mut NetObject<List<i32>> {
+    let list = List::<i32>::new();
+    let collection = ilist as *mut NetObject<ICollection>;
+    for i in 0..(collection.get_count()) {
+        let item = ilist.get_item(i) as *mut NetObject<i32>;
+        list.add_item(*item.get_content())
     }
     list
 }
