@@ -2,6 +2,12 @@
 name = "rustishka"
 version = "0.1.0"
 edition = "2021"
+keywords = ["dotnet", "csharp", "ffi", "bindings", "managed"]
+authors = ["BadRyuner"]
+description = "Better Interop between C# and Rust"
+repository = "https://github.com/BadRyuner/rustishka"
+license = "MIT"
+readme = "../README.md"
 
 [dependencies]
 bitflags = "2.5.0"
