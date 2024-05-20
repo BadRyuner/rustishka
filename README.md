@@ -16,7 +16,8 @@ private struct BridgeConvention
     public delegate* <Type, object> FAlloc;
     public delegate* <byte*, int, string> FAllocString;
     public delegate* <Type, int, Array> FAllocArray;
-    public delegate* <delegate*<nint, nint>, nint, nint*, Exception> FTryCatch;
+    public delegate* <delegate*<void>, Exception> FTryCatch;
+    public delegate* <Exception, void> FThrow;
 }
 ```
 The developer must connect the library to the interface using a function call:
@@ -72,6 +73,15 @@ impl SomeObject {
     define_constructor!(pub new, arg_name: ArgType);
 }
  ```
+ - Rust lib can access to static fields 
+ ```Rust
+ SomeObject::get_cool_static_field();
+ // where
+ define_typeof!(SomeObject, "blahblah");
+ impl SomeObject {
+    define_static_field!(pub get_cool_static_field, "CoolStaticField", SomeFieldType);
+ }
+ ```
  - Rust lib can use typeof sugar
 ```Rust
 pub struct SomeObject { }
@@ -79,7 +89,14 @@ define_typeof!(SomeObject, "SomeObject AssemblyQualifiedName");
 // in method
 let ty : *mut NetObject<SystemType> = SomeObject::type_of();
 ```
- - Rust lib can use almost all of .NET Reflection's features!
+ - Rust lib can easily alloc managed arrays 
+ ```Rust
+ managed_array!(ElementType, elements num, elements);
+ // ex:
+ managed_array!(i32, 5, 0, 1, 2, 3, 4);
+ managed_array!(SystemType, 2, i32::type_of(), f32::type_of());
+ ```
+ - Rust lib can use almost all of .NET Reflection's features! (Even use DynamicMethod!)
 
   As you can see: it`s very human design, very easy to use. 
 # Examples
@@ -88,6 +105,5 @@ let ty : *mut NetObject<SystemType> = SomeObject::type_of();
 [Rust side](https://github.com/badryuner/rustishka/blob/master/rustishka_examples/src/lib.rs)
 # TODO
 - Add support for field access
-- Maybe better reflection?
 - .Net type inheritance in Rust by creating a custom type via .Net TypeBuilder & overriding methodtable entries.
 - Source generators (atm it's scary Rustishka.Tools)
