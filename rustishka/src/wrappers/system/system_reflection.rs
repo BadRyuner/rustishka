@@ -2,7 +2,7 @@ use bitflags::bitflags;
 
 use crate::{define_constructor, define_function, define_typeof, define_virtual, DOTNET_RUNTIME};
 
-use super::{system_array::SystemArray, system_delegate::Delegate, system_string::SystemString, MethodTable, NetObject, SystemObject, SystemObjectBindings};
+use super::{system_array::SystemArray, system_delegate::Delegate, system_string::SystemString, AutoStructBox, MethodTable, NetObject, SystemObject, SystemObjectBindings};
 
 pub struct MemberInfo { }
 
@@ -347,6 +347,9 @@ bitflags! {
     }
 }
 
+define_typeof!(CallingConventions, "System.Reflection.CallingConventions");
+impl AutoStructBox for CallingConventions {}
+
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct MethodAttributes: u32
@@ -377,6 +380,9 @@ bitflags! {
         const ReservedMask = 53248; // 0x0000D000
     }
 }
+
+define_typeof!(MethodAttributes, "System.Reflection.MethodAttributes");
+impl AutoStructBox for MethodAttributes {}
 
 impl MethodBaseBindings for NetObject<MethodBase> {}
 

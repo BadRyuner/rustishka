@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Numerics;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text.Json;
 
 namespace Rustishka.Tools;
@@ -9,8 +10,8 @@ public static unsafe class Program
 {
     public static void Main(string[] args)
     {
-        //DisplayType(typeof(IList), pub: true, skipVirtual: false, skipConstructors: false);
-        DisplayInterface(typeof(IEnumerable));
+        DisplayType(typeof(OpCodes), pub: true, skipVirtual: false, skipConstructors: false);
+        //DisplayInterface(typeof(TypeBuilder));
         Console.ReadLine();
     }
 
@@ -36,10 +37,11 @@ public static unsafe class Program
 
         Console.WriteLine($"\ndefine_typeof!({className}, \"{type.AssemblyQualifiedName}\");");
 
+        Console.WriteLine($"\nimpl {className} {{");
+
         if (!skipConstructors)
         {
             int counter = 0;
-            Console.WriteLine($"\nimpl {className} {{");
             foreach (var ctor in type.GetConstructors(AllInstance))
             {
                 Console.Write("    define_constructor!(");
@@ -49,8 +51,15 @@ public static unsafe class Program
                 Console.WriteLine(");");
                 counter++;
             }
-            Console.WriteLine("}");
         }
+
+        Console.WriteLine("\n// static fields\n");
+        foreach (var field in type.GetFields(AllStatic))
+        {
+            Console.WriteLine($"    define_static_field!({(pub ? "pub " : null)}get_{JsonNamingPolicy.SnakeCaseLower.ConvertName(field.Name)}, \"{field.Name}\", {ConvertType(field.FieldType, false)}{(field.FieldType.IsValueType ? ", unbox" : null)});");
+        }
+
+        Console.WriteLine("}");
 
         Console.WriteLine($"\nimpl NetObject<{className}> {{");
         

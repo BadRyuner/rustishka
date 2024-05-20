@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -156,5 +157,15 @@ public unsafe class SomeTests
         List<int> list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
         var result = func(list);
         Assert.Equal(list, result);
+    }
+
+
+    [Fact]
+    public void TestCreateMethod()
+    {
+        var func = (delegate*<DynamicMethod>)NativeLibrary.GetExport(SharedRustModule.ModuleHandle,
+            "create_method");
+        var method = func();
+        Assert.Equal(2, method.Invoke(null, null));
     }
 }

@@ -40,6 +40,25 @@ macro_rules! define_constructor {
 }
 
 #[macro_export]
+macro_rules! define_static_field {
+    ($vi:vis $func_name:ident, $field_name:literal, $rett:path) => {
+        pub fn $func_name() -> $rett {
+            let my_type = Self::type_of();
+            let field = my_type.get_field(allocate_string(&String::from($field_name)), BindingFlags::PublicStatic);
+            field.get_value(0 as _) as $rett
+        }
+    };
+    ($vi:vis $func_name:ident, $field_name:literal, $rett:path, unbox) => {
+        pub fn $func_name() -> $rett {
+            let my_type = Self::type_of();
+            let field = my_type.get_field(allocate_string(&String::from($field_name)), BindingFlags::PublicStatic);
+            let val = field.get_value(0 as _) as *mut NetObject<$rett>;
+            *val.get_content()
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! define_typeof {
     ($structure:ty, $name:literal) => {
         impl $crate::wrappers::system::TypeInfoProvider for $structure {

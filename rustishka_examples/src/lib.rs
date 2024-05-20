@@ -1,3 +1,4 @@
+use rustishka::wrappers::system::dynamic_things::{DynamicMethod, OpCodes};
 use rustishka::wrappers::system::system_appdomain::AppDomain;
 use rustishka::wrappers::system::system_delegate::{Action, Action1, Action2, Action3, DelegateBindings, Func1, Func2, Func3};
 use rustishka::wrappers::system::system_exception::Exception;
@@ -5,7 +6,7 @@ use rustishka::wrappers::system::system_ienumerator::IEnumerator;
 use rustishka::wrappers::system::system_list::{ICollection, IList, List};
 use rustishka::wrappers::system::system_reflection::AssemblyName;
 use rustishka::wrappers::system::TypeInfoProvider;
-use rustishka::{allocate_string, initialize_rustishka, search_type_cached, throw, DOTNET_RUNTIME};
+use rustishka::{allocate_string, initialize_rustishka, managed_array, search_type_cached, throw, DOTNET_RUNTIME};
 use rustishka::wrappers::system::{system_delegate::Delegate, system_reflection::MethodBaseBindings};
 
 use rustishka::wrappers::system::{system_array::SystemArray, system_reflection::{BindingFlags, SystemType}, system_string::SystemString, NetObject, SystemObject, SystemObjectBindings};
@@ -182,4 +183,17 @@ extern "stdcall" fn do_smth_with_ilist(ilist: *mut NetObject<IList>) -> *mut Net
         list.add_item(*item.get_content())
     }
     list
+}
+
+
+#[no_mangle]
+extern "stdcall" fn create_method() -> *mut NetObject<DynamicMethod> {
+    let name = allocate_string(&String::from("CreatedMethod"));
+    let return_type = i32::type_of();
+    let parameter_types = managed_array!(SystemType, 0);
+    let me = DynamicMethod::new(name, return_type, parameter_types);
+    let ilgen = me.get_il_generator();
+    ilgen.emit(OpCodes::get_ldc_i4_2());
+    ilgen.emit(OpCodes::get_ret());
+    me
 }
