@@ -1,5 +1,5 @@
-#![feature(arbitrary_self_types)]
 #![cfg(any(windows, doc))]
+#![feature(arbitrary_self_types)]
 #![allow(dead_code)]
 
 use std::sync::OnceLock;
